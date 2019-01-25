@@ -551,12 +551,15 @@ void regular_operation_transmitters() {
   }
 }
 
+const uint32_t millis_between_dp_connections = 500;
+
 uint8_t PowerStateRx = PowerStateInvalid;
 void power_up_receivers() {
   if(PowerStateRx != PowerStateOn){
     SerialDebugln(F("Rx+"));
-  pinMode(RESET_OTHER_CHIPS_PRI,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_PRI, HIGH);  
-  pinMode(RESET_OTHER_CHIPS_SEC,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_SEC, HIGH);  
+    pinMode(RESET_OTHER_CHIPS_PRI,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_PRI, HIGH); 
+    delay( millis_between_dp_connections );
+    pinMode(RESET_OTHER_CHIPS_SEC,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_SEC, HIGH);  
     PowerStateRx = PowerStateOn;
   }
 }
@@ -564,8 +567,9 @@ void power_up_receivers() {
 void power_down_receivers() {
   if(PowerStateRx != PowerStateOff){
     SerialDebugln(F("Rx-"));
-    pinMode(RESET_OTHER_CHIPS_PRI,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_PRI, LOW);  
-    pinMode(RESET_OTHER_CHIPS_SEC,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_SEC, LOW);    
+    pinMode(RESET_OTHER_CHIPS_SEC,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_SEC, LOW);
+    delay( millis_between_dp_connections );      
+    pinMode(RESET_OTHER_CHIPS_PRI,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_PRI, LOW);
     PowerStateRx = PowerStateOff;
   }
 }
@@ -760,11 +764,19 @@ void CheckEPMIConfig(){
 
 void write_config_eeproms(){  
     uint32_t dp_rx_shutdown_millis = millis();
-    const uint32_t millis_disconnect_for_dp_edid_change = 3000;
+    const uint32_t millis_disconnect_for_dp_edid_change = 1000;
+    const uint32_t millis_disconnect_for_zeroed_edid = 1000;
     power_down_receivers();
+
+    myEDID.Reset();
+    update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
+    update_eeprom(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte); 
+    power_up_receivers();  
+    delay(millis_disconnect_for_zeroed_edid);
+    power_down_receivers();
+    
     uint8_t TargetProfile = UserConfiguration_LoadEDID();
     uint8_t SerialNumber = MagicByte();
-    
     GenerateEDIDWithParameters(true, PANEL_VERSION, TargetProfile, SerialNumber);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
