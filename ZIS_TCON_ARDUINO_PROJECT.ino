@@ -400,6 +400,7 @@ void SendSerialStateToPanel(){
   if(PowerStateFPGA == PowerStateOn){
   if(millis() < BlockPanelUARTSelfUpdate ) { return; }
   SerialToPanel.println(PanelInfoArray[PANEL_VERSION].Name);
+  SerialToPanel.println(F("  OSD_OFF")); // Only needed for boards shipped in first batch in Jan2019, though it does not hurt to include in others
   // if(UserConfiguration_LoadOSD()){ SerialToPanel.println(F("OSD_ON"));} else {SerialToPanel.println(F("OSD_OFF"));}
   if(UserConfiguration_LoadCrosshair()){ SerialToPanel.println(F("XHAIR_EN"));} else {SerialToPanel.println(F("XHAIR_NO"));}
   }
