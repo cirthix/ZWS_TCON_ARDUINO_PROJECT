@@ -347,6 +347,7 @@ boolean PrintStateChanges = true;
         if ( myVideoActive == false ) {
           if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : B2"));  /*SerialFlush();Disabled*/}
           BacklightDisable();
+          power_down_fpga();
           SystemStateCounter=0;
           SystemState=SystemState_Panel;
           break;
