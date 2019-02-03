@@ -13,6 +13,10 @@ uint8_t UserConfiguration_LoadBrightness(){return EEPROM.read(ADDRESS_BACKLIGHT_
 void UserConfiguration_SaveBrightness(uint8_t myValue){ EEPROM.update(ADDRESS_BACKLIGHT_LEVEL, myValue); }
 void UserConfiguration_SaveDefaultBrightness(){EEPROM.update(ADDRESS_BACKLIGHT_LEVEL, FACTORY_DEFAULT_BACKLIGHT_BRIGHTNESS); }
 
+uint8_t UserConfiguration_LoadWasSecondary(){return EEPROM.read(ADDRESS_WAS_SECONDARY);}
+void UserConfiguration_SaveWasSecondary(uint8_t myValue){ EEPROM.update(ADDRESS_WAS_SECONDARY, myValue); }
+void UserConfiguration_SaveDefaultWasSecondary(){EEPROM.update(ADDRESS_WAS_SECONDARY, false); }
+
 uint8_t UserConfiguration_LoadOSD(){return EEPROM.read(ADDRESS_OSD_ENABLED);}
 void UserConfiguration_SaveOSD(uint8_t myValue){ EEPROM.update(ADDRESS_OSD_ENABLED, myValue); }
 void UserConfiguration_SaveDefaultOSD(){EEPROM.update(ADDRESS_OSD_ENABLED, FACTORY_DEFAULT_USE_OSD); }
@@ -28,6 +32,10 @@ uint8_t DetermineIfFactoryProgrammed(){ return (UserConfiguration_LoadMagicByte(
 
 // This function is entirely compiled away into a single byte value known at compile-time
 uint8_t MagicByte(){
+#ifdef FIRMWARE_UNIQUE_ID_OVERRIDE
+  return FIRMWARE_UNIQUE_ID_OVERRIDE;
+#endif
+  
 const uint8_t array_size=24;
 const uint8_t compile_date_time[array_size] = "" __DATE__ " " __TIME__ ""; // Example string: "Apr  3 2016 01:44:37"
 uint8_t hashed_value= 

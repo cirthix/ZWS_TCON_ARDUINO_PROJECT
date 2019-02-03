@@ -52,14 +52,21 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define PANEL_IS_V500DKZIS    6
 #define PANEL_IS_V580DKZIS    7
 
-
 #define BUTTONBOARD_IS_ZISWORKS   100
 #define BUTTONBOARD_IS_SAMSUNG    101
 #define BUTTONBOARD_IS_SAMSUNG_WITH_RGBLED    102
 
+
+#define BOARD_IS_DUAL_EP369_TCON        1
+#define BOARD_IS_EP369_REV2017          2
+
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define PANEL_VERSION PANEL_IS_V390DKZIS
+#define PANEL_VERSION PANEL_IS_M280GJQDZIS
 #define BUTTONBOARD_VERSION BUTTONBOARD_IS_ZISWORKS
+// Note: use FIRMWARE_UNIQUE_ID_OVERRIDE with old boards to keep the serial numbers in EDIDs matched.
+#define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
+//#define FIRMWARE_UNIQUE_ID_OVERRIDE 34
+
 // Note that you also have the option to change EDID configurations in edid_construction file
 // In particular, #define EDIDMetaConfigs EDIDMetaConfig_safe_configuration may be useful to change
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
@@ -75,6 +82,7 @@ const uint16_t ADDRESS_SELECTED_EDID            = 18;
 const uint16_t ADDRESS_BACKLIGHT_LEVEL          = 19;
 const uint16_t ADDRESS_OSD_ENABLED              = 20;
 const uint16_t ADDRESS_CROSSHAIR_ENABLED        = 21;
+const uint16_t ADDRESS_WAS_SECONDARY                = 22;
 
 const uint8_t BUTTON_SENSE_TIME = 5;   // 1 TICK IS 1 MICROCSECOND
 

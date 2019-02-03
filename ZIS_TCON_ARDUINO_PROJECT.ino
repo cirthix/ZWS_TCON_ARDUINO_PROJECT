@@ -117,6 +117,8 @@ const uint8_t PowerStateOn = 1;
 const uint8_t PowerStateOff = 2;
 uint8_t PowerStateFPGA = PowerStateInvalid;
 
+uint8_t I_AM_A_SECONDARY=false;
+
 uint8_t ACTIVE_VIDEO_MODE_FORCED_ON = false;
 
 void setup(){
@@ -148,6 +150,9 @@ void setup(){
 //    configure_watchdog_timer();     
 //  SerialDebugln(F("\t->OK"));
 
+  Serial.println(F("\nINIT/MISC"));    
+  I_AM_A_SECONDARY=UserConfiguration_LoadWasSecondary();
+    
   SerialDebugln(F("\nINIT/UARTs"));   
   SerialToPanel.begin(PANEL_UART_SPEED);
   SerialToBldriver.begin(BACKLIGHT_UART_SPEED);
@@ -212,6 +217,7 @@ void Task10ms(){
 
 void Task100ms(){
     SendSerialStateToBldriver();
+    DeterminePrimarySecondary();
 }
 
 void Task1000ms(){
@@ -463,6 +469,36 @@ SerialDebug(F("BacklightState : "));
 }
 
 
+void DeterminePrimarySecondary(){  
+  #if BOARD_VERSION==BOARD_IS_EP369_REV2017
+    uint8_t myPrimarySecondary=determine_if_Secondary();
+    if(I_AM_A_SECONDARY != myPrimarySecondary){
+      // We have changed roles, handle it appropriately
+      I_AM_A_SECONDARY = myPrimarySecondary;
+      UserConfiguration_SaveWasSecondary(I_AM_A_SECONDARY);
+      PrimarySecondaryChangedStates();
+    }
+   #endif
+}
+
+void PrimarySecondaryChangedStates(){  
+    SerialDebugln(F("Primary/Secondary detection changed"));
+    set_selected_edid(UserConfiguration_LoadEDID());
+}
+
+uint8_t determine_if_Secondary(){  
+uint8_t retval=false;  
+  #if BOARD_VERSION==BOARD_IS_EP369_REV2017
+    pinMode ( PANEL_GPIO0, INPUT_PULLUP );    
+    // The ZWS tcon uses a 1K pulldown on this signal.  This will easily overcome the on-chip pullup resistor and cause a 0 to be read.  The Secondary board will instead read a 1 because of the on-chip pullup.
+    zdelay(10); // Let the line settle
+    if(digitalRead(PANEL_GPIO0)==HIGH) { retval= true;}
+    pinMode ( PANEL_GPIO0, OUTPUT );  
+    #endif
+  return retval;
+}
+
+
 uint8_t CheckVideoActive(){
   if(ACTIVE_VIDEO_MODE_FORCED_ON == true) {return LOW | HIGH; } //? ugly but it works
     uint8_t result = LOW;
@@ -605,12 +641,32 @@ wdt_enable(WDTO_15MS);
 }
 
 
+struct ParsedSerialCommand {
+bool Valid;
+bool XHAIR;
+uint8_t EDID;
+uint8_t PowerSave;
+};
+
 void handle_serial_commands() {
   while (Serial.available() > 0) {
     int incomingByte = Serial.read();      
     if (incomingByte > 0) { 
       uint8_t myChar = incomingByte & 0xff ;
-      if(myChar>0x7f) { return; } // All bytes with values above 127 are considered special zws serial commands which can be ignored in this system
+      if(myChar>0x7f) { // All bytes with values above 127 are considered special zws serial commands        
+        #if BOARD_VERSION==BOARD_IS_EP369_REV2017    
+          struct ParsedSerialCommand myParsedSerialCommand=SerialCommandParser(myChar);
+          PrintParsedSerialCommand(myChar);
+          if(myParsedSerialCommand.Valid==false ) {return;}
+          if((myParsedSerialCommand.XHAIR==false) && (UserConfiguration_LoadCrosshair()!=0)) {CrosshairToggleON();}  
+          if((myParsedSerialCommand.XHAIR==true) && (UserConfiguration_LoadCrosshair()==0)) {CrosshairToggleOFF();}  
+          if(myParsedSerialCommand.EDID!=UserConfiguration_LoadEDID()) { set_selected_edid(myParsedSerialCommand.EDID);}
+          // Don't support off/low/on powerstates yet.  just power on
+           if(myParsedSerialCommand.PowerSave==TargetPowerSaveFULLY_ON) {set_on_power_state(); }
+           else {set_off_power_state(); }
+        #endif
+        return;
+      } 
       switch (myChar) {         
         case ASCII_CODE_FOR_SIMPLE_DEBUG_COMMAND : ACTIVE_VIDEO_MODE_FORCED_ON = true; return;   
         case ASCII_CODE_FOR_BL_MODE_IS_PWM     : if(CONNECTED_BACKLIGHT == CONNECTED_BACKLIGHT_IS_GENERIC) { BacklightDisable();} CONNECTED_BACKLIGHT = CONNECTED_BACKLIGHT_IS_ZWS; ZWS_BACKLIGHT_MODE = ZWS_BACKLIGHT_MODE_PWM; return; 
@@ -770,6 +826,22 @@ void write_config_eeproms(){
     const uint32_t millis_disconnect_for_zeroed_edid = 1000;
     power_down_receivers();
 
+    uint8_t TargetProfile = UserConfiguration_LoadEDID();
+    uint8_t SerialNumber = MagicByte();
+
+
+  #if BOARD_VERSION==BOARD_IS_EP369_REV2017    
+    myEDID.Reset();
+    update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
+    power_up_receivers();  
+    delay(millis_disconnect_for_zeroed_edid);
+    power_down_receivers();
+    GenerateEDIDWithParameters(not I_AM_A_SECONDARY, PANEL_VERSION, TargetProfile, SerialNumber);
+    myEDID.PrintEDID();   
+    myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
+    myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
+    update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte);     
+  #else
     myEDID.Reset();
     update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
     update_eeprom(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte); 
@@ -777,8 +849,6 @@ void write_config_eeproms(){
     delay(millis_disconnect_for_zeroed_edid);
     power_down_receivers();
     
-    uint8_t TargetProfile = UserConfiguration_LoadEDID();
-    uint8_t SerialNumber = MagicByte();
     GenerateEDIDWithParameters(true, PANEL_VERSION, TargetProfile, SerialNumber);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
@@ -790,6 +860,7 @@ void write_config_eeproms(){
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI()); 
     update_eeprom(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte); 
+  #endif
     
     while ((millis() - dp_rx_shutdown_millis) < millis_disconnect_for_dp_edid_change) {wdt_reset();}
     power_up_receivers();  
