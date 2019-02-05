@@ -61,7 +61,7 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define BOARD_IS_EP369_REV2017          2
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define PANEL_VERSION PANEL_IS_M280GJQDZIS
+#define PANEL_VERSION PANEL_IS_V390DKZIS
 #define BUTTONBOARD_VERSION BUTTONBOARD_IS_ZISWORKS
 // Note: use FIRMWARE_UNIQUE_ID_OVERRIDE with old boards to keep the serial numbers in EDIDs matched.
 #define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
