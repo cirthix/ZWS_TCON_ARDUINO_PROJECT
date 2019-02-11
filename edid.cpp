@@ -3,9 +3,9 @@
  
 void PrintHexByte(uint8_t hexbyte){   
   uint8_t mychar=hexbyte>>4;
-  if(mychar<0x0A) { SerialWrite('0' + mychar);} else  { SerialWrite('7' + mychar);}
+  if(mychar<0x0A) { Serial.write('0' + mychar);} else  { Serial.write('7' + mychar);}
   mychar=hexbyte&0x0F;
-  if(mychar<0x0A) { SerialWrite('0' + mychar);} else  { SerialWrite('7' + mychar);}
+  if(mychar<0x0A) { Serial.write('0' + mychar);} else  { Serial.write('7' + mychar);}
 }
 
 EDID::EDID(){EDID::Reset();}
@@ -13,6 +13,7 @@ EDID::EDID(){EDID::Reset();}
 void EDID::Reset(){
   memset(RawBytes,0,sizeof(RawBytes));
   NumberOfFilledDescriptorBlocks = 0;
+  NumberOfFilledCEADescriptorBlocks = 0;
 }  
 
 uint8_t EDID::GetByte(uint8_t address){
@@ -180,32 +181,7 @@ void EDID::SetNoGenericVideoModes(){
 
 
 void EDID::AddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
-  uint16_t PixelClockInteger = round(100*myModeLine.PixelClock);
-  uint16_t HBlank = myModeLine.HFP+myModeLine.HSW+myModeLine.HBP;
-  uint16_t VBlank = myModeLine.VFP+myModeLine.VSW+myModeLine.VBP;
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x00, (PixelClockInteger)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x01, (PixelClockInteger>>8)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x02, (myModeLine.HActive)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x03, (HBlank)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x04, ((((myModeLine.HActive>>8)&0x000F)<<4) | ((HBlank>>8)&0x000F)));
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x05, (myModeLine.VActive)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x06, (VBlank)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x07, ((((myModeLine.VActive>>8)&0x000F)<<4) | ((VBlank>>8)&0x000F)));
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x08, (myModeLine.HFP)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x09, (myModeLine.HSW)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x0A, (((myModeLine.VFP&0x000F)<<4) | (myModeLine.VSW&0x000F)));
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x0B, 
-  (((myModeLine.HFP>>8)&0x0003) <<6) |
-  (((myModeLine.HSW>>8)&0x0003) <<4) |
-  (((myModeLine.VFP>>4)&0x0003) <<2) |
-  (((myModeLine.VSW>>4)&0x0003) <<0) );
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x0C, (HSizeInMilliMeters)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x0D, (VSizeInMilliMeters)&0x00FF);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x0E, ((((HSizeInMilliMeters>>8)&0x000F)<<4) | ((VSizeInMilliMeters>>8)&0x000F)));
-  // Assume zero-borders, 2d image,  and +HSYNC +VSYNC  
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x0F, 0x00);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x10, 0x00);
-  EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x11, 0x1E);
+  EDID::AddDetailedDescriptorTiming18BytesToOffset(EDID::GetDetailedDescriptorBlockOffset(), myModeLine, HSizeInMilliMeters, VSizeInMilliMeters);
   EDID::IncrementNumberOfFilledDescriptorBlocks();
 }
 
@@ -281,9 +257,70 @@ void EDID::FixChecksumBaseBlock(){
   EDID::SetByte(0x7F, CheckSum);  
 }
 
-void EDID::FixChecksumDiDBlock(){
+void EDID::FixChecksumExtensionBlock(){
   uint8_t CheckSum = 0x00 - CalculateSumBlock(1);
   EDID::SetByte(0xFF, CheckSum);  
+}
+
+void EDID::CEACreateBlock(){
+  EDID::SetExtensionBlockCount(1);
+  //Note: already memset to 0 during class initilization
+  EDID::SetByte(CEABlockOffset+0, 0x02);  // CEA extension ID
+  EDID::SetByte(CEABlockOffset+1, 0x03);  // CEA version    
+  EDID::SetByte(CEABlockOffset+2, 0x04);  // No extra blocks (DTD offset = 0x04)
+  EDID::SetByte(CEABlockOffset+3, 0x00);  // No features described
+}
+
+void EDID::CEAAddHDMI(){
+  uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2);
+  Serial.print(F("myByteOffsetHDMI=")); Serial.println(myByteOffset);
+  EDID::SetByte(CEABlockOffset+2, EDID::GetByte(CEABlockOffset+2)+0x06);
+  // Add empty HDMI block 
+  EDID::SetByte(myByteOffset+0, 0x65);
+  EDID::SetByte(myByteOffset+1, 0x03);
+  EDID::SetByte(myByteOffset+2, 0x0C);
+  EDID::SetByte(myByteOffset+3, 0x00);
+  EDID::SetByte(myByteOffset+4, 0x10);
+  EDID::SetByte(myByteOffset+5, 0x00);
+}
+
+void EDID::CEAAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
+  const uint8_t CEA_DTD_SIZE = 18;
+  uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2) + NumberOfFilledCEADescriptorBlocks * CEA_DTD_SIZE;
+  Serial.print(F("myEntry=")); Serial.println(NumberOfFilledCEADescriptorBlocks);
+  Serial.print(F("myByteOffset=")); Serial.println(myByteOffset);
+  EDID::AddDetailedDescriptorTiming18BytesToOffset(myByteOffset, myModeLine, HSizeInMilliMeters, VSizeInMilliMeters);
+  NumberOfFilledCEADescriptorBlocks = NumberOfFilledCEADescriptorBlocks +1;
+  EDID::SetByte(CEABlockOffset+3, NumberOfFilledCEADescriptorBlocks);  // update number of native formats
+}
+
+void EDID::AddDetailedDescriptorTiming18BytesToOffset(uint8_t myOffset, ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
+  uint16_t PixelClockInteger = round(100*myModeLine.PixelClock);
+  uint16_t HBlank = myModeLine.HFP+myModeLine.HSW+myModeLine.HBP;
+  uint16_t VBlank = myModeLine.VFP+myModeLine.VSW+myModeLine.VBP;
+  EDID::SetByte(myOffset + 0x00, (PixelClockInteger)&0x00FF);
+  EDID::SetByte(myOffset + 0x01, (PixelClockInteger>>8)&0x00FF);
+  EDID::SetByte(myOffset + 0x02, (myModeLine.HActive)&0x00FF);
+  EDID::SetByte(myOffset + 0x03, (HBlank)&0x00FF);
+  EDID::SetByte(myOffset + 0x04, ((((myModeLine.HActive>>8)&0x000F)<<4) | ((HBlank>>8)&0x000F)));
+  EDID::SetByte(myOffset + 0x05, (myModeLine.VActive)&0x00FF);
+  EDID::SetByte(myOffset + 0x06, (VBlank)&0x00FF);
+  EDID::SetByte(myOffset + 0x07, ((((myModeLine.VActive>>8)&0x000F)<<4) | ((VBlank>>8)&0x000F)));
+  EDID::SetByte(myOffset + 0x08, (myModeLine.HFP)&0x00FF);
+  EDID::SetByte(myOffset + 0x09, (myModeLine.HSW)&0x00FF);
+  EDID::SetByte(myOffset + 0x0A, (((myModeLine.VFP&0x000F)<<4) | (myModeLine.VSW&0x000F)));
+  EDID::SetByte(myOffset + 0x0B, 
+  (((myModeLine.HFP>>8)&0x0003) <<6) |
+  (((myModeLine.HSW>>8)&0x0003) <<4) |
+  (((myModeLine.VFP>>4)&0x0003) <<2) |
+  (((myModeLine.VSW>>4)&0x0003) <<0) );
+  EDID::SetByte(myOffset + 0x0C, (HSizeInMilliMeters)&0x00FF);
+  EDID::SetByte(myOffset + 0x0D, (VSizeInMilliMeters)&0x00FF);
+  EDID::SetByte(myOffset + 0x0E, ((((HSizeInMilliMeters>>8)&0x000F)<<4) | ((VSizeInMilliMeters>>8)&0x000F)));
+  // Assume zero-borders, 2d image,  and +HSYNC +VSYNC  
+  EDID::SetByte(myOffset + 0x0F, 0x00);
+  EDID::SetByte(myOffset + 0x10, 0x00);
+  EDID::SetByte(myOffset + 0x11, 0x1E);
 }
 
 void EDID::DiDCreateBlock(){
@@ -408,11 +445,10 @@ void EDID::DiDSetChecksum(){
   EDID::SetByte(DidBlockStop, CheckSum);  
 }
   
-void EDID::PrintEDID(){
-    
-  SerialDebugln(F(" EDID Buffer:"));
+void EDID::PrintEDID(){    
+  Serial.println(F(" EDID Buffer:"));
   for(uint16_t i=0; i<EDID_BLOCK_SIZE; i++){
-    SerialDebug(F(" "));
+    Serial.print(F(" "));
     //  SerialDebug(F("0x"));
     PrintHexByte(EDID::GetByte(i));
     if(i%16 == 15) {SerialDebugln(F(""));}
@@ -421,11 +457,10 @@ void EDID::PrintEDID(){
   for(uint16_t i=128; i<EDID_SIZE; i++){
     if(EDID::GetByte(i)!=0x00) {print_the_extension_block=true;}
   }
-
   if(print_the_extension_block==true) {
   //SerialDebugln(F(" DiD Buffer:"));
     for(uint16_t i=128; i<EDID_SIZE; i++){
-      SerialDebug(F(" "));
+      Serial.print(F(" "));
       //  SerialDebug(F("0x"));
       PrintHexByte(EDID::GetByte(i));
       if(i%16 == 15) {SerialDebugln(F(""));}

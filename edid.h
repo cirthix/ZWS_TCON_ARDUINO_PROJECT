@@ -4,7 +4,9 @@
 
 const uint16_t EDID_BLOCK_SIZE = 128;
 const uint16_t EDID_SIZE = 2*EDID_BLOCK_SIZE;
+ // Can have either DiD or CEA
 const uint8_t DiDBlockOffset = EDID_BLOCK_SIZE;
+const uint8_t CEABlockOffset = EDID_BLOCK_SIZE;
 
 struct ModeLine{
   float PixelClock;
@@ -47,7 +49,10 @@ public:
   void AddDetailedDescriptorRangeLimitsOnly(uint16_t MinVHz, uint16_t MaxVHz, uint16_t MinHKhz, uint16_t MaxHKhz, uint16_t MaxPixelClock);
   void AddDetailedDescriptorName(uint8_t NameLength, uint8_t* NamePointer);
   void FixChecksumBaseBlock();
-  void FixChecksumDiDBlock();
+  void FixChecksumExtensionBlock();
+  void CEACreateBlock();
+  void CEAAddHDMI();
+  void CEAAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters);
   void DiDCreateBlock();
   void DiDAddTiledDescriptor(uint8_t ManufacturerID[3], uint16_t ProductID, uint32_t SerialNumber, uint8_t HTiles, uint8_t VTiles, uint8_t HTileLocation, uint8_t VTileLocation, uint16_t HTileSize, uint16_t VTileSize);
   void DiDAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters);
@@ -59,11 +64,13 @@ private:
   uint8_t DiDByteCount;
   uint8_t DiDDetailedDescriptorByteCountAddress;
   uint8_t NumberOfFilledDescriptorBlocks = 0;
+  uint8_t NumberOfFilledCEADescriptorBlocks = 0;
   uint8_t RawBytes[EDID_SIZE];
   void SetExtensionBlockCount(uint8_t value);
   uint8_t DiDGetDescriptorOffset();
   void DiDAddToByteCount(uint8_t value);
   uint8_t CalculateSumBlock(uint8_t block);
+  void AddDetailedDescriptorTiming18BytesToOffset(uint8_t myOffset, ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters);
   void IncrementNumberOfFilledDescriptorBlocks();
   uint8_t GetDetailedDescriptorBlockOffset();
   void DiDAddDetailedDescriptorTimingDataOnly(uint8_t myOffset, ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters);
