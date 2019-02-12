@@ -15,6 +15,7 @@
 #define ModeLine_1080p240_Minimal { 523.200, 1920, 16, 32, 32, 1080, 1, 3, 6 }
 #define ModeLine_1080p240_Safe { 529.490, 1920, 16, 32, 16, 1080, 3, 5, 24 }
 #define ModeLine_1080p120_Safe { 270.000, 1920, 16, 32, 32, 1080, 3, 5, 37 }
+#define ModeLine_1080p60_Safe { 140.400, 1920, 48, 32, 80, 1080, 3, 5, 37 }
 #define ModeLine_720p360_Minimal  { 401.730, 1280, 48, 32, 140, 720, 3, 5, 16 }
 #define ModeLine_720p240_Safe { 268.800, 1280, 48, 32, 40, 720, 3, 5, 72 }
 #define ModeLine_540p480_Minimal { 333.600, 960, 48, 32, 210, 540, 3, 5, 8 }
