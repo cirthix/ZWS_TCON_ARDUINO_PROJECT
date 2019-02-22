@@ -150,7 +150,7 @@ void setup(){
 //    configure_watchdog_timer();     
 //  SerialDebugln(F("\t->OK"));
 
-  Serial.println(F("\nINIT/MISC"));    
+  SerialDebugln(F("\nINIT/MISC\n\n")); 
   I_AM_A_SECONDARY=UserConfiguration_LoadWasSecondary();
     
   SerialDebugln(F("\nINIT/UARTs"));   
@@ -503,7 +503,9 @@ uint8_t CheckVideoActive(){
   if(ACTIVE_VIDEO_MODE_FORCED_ON == true) {return LOW | HIGH; } //? ugly but it works
     uint8_t result = LOW;
     result |= digitalRead(ACTIVE_VIDEO_PRI);
+#ifdef ACTIVE_VIDEO_SEC
     result |= digitalRead(ACTIVE_VIDEO_SEC);
+#endif
     return result;
 }
 
@@ -575,7 +577,9 @@ void force_sleep_transmitters() {
   if(PowerStateTx != PowerStateOff){
     SerialDebugln(F("Tx-"));
     pinMode(LOW_POWER_MODE_PRI,OUTPUT); digitalWrite(LOW_POWER_MODE_PRI, HIGH);
+    #ifdef LOW_POWER_MODE_SEC
     pinMode(LOW_POWER_MODE_SEC,OUTPUT); digitalWrite(LOW_POWER_MODE_SEC, HIGH);
+    #endif
     PowerStateTx = PowerStateOff;
   }
 }
@@ -584,7 +588,9 @@ void regular_operation_transmitters() {
   if(PowerStateTx != PowerStateOn){
     SerialDebugln(F("Tx+"));
     pinMode(LOW_POWER_MODE_PRI,OUTPUT); digitalWrite(LOW_POWER_MODE_PRI, LOW);
+#ifdef LOW_POWER_MODE_SEC
     pinMode(LOW_POWER_MODE_SEC,OUTPUT); digitalWrite(LOW_POWER_MODE_SEC, LOW);
+#endif
     PowerStateTx = PowerStateOn;
   }
 }
@@ -596,8 +602,10 @@ void power_up_receivers() {
   if(PowerStateRx != PowerStateOn){
     SerialDebugln(F("Rx+"));
     pinMode(RESET_OTHER_CHIPS_PRI,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_PRI, HIGH); 
+    #ifdef RESET_OTHER_CHIPS_SEC
     delay( millis_between_dp_connections );
     pinMode(RESET_OTHER_CHIPS_SEC,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_SEC, HIGH);  
+    #endif
     PowerStateRx = PowerStateOn;
   }
 }
@@ -605,8 +613,10 @@ void power_up_receivers() {
 void power_down_receivers() {
   if(PowerStateRx != PowerStateOff){
     SerialDebugln(F("Rx-"));
+    #ifdef RESET_OTHER_CHIPS_SEC
     pinMode(RESET_OTHER_CHIPS_SEC,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_SEC, LOW);
-    delay( millis_between_dp_connections );      
+    delay( millis_between_dp_connections );  
+    #endif    
     pinMode(RESET_OTHER_CHIPS_PRI,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_PRI, LOW);
     PowerStateRx = PowerStateOff;
   }
@@ -658,8 +668,8 @@ void handle_serial_commands() {
           struct ParsedSerialCommand myParsedSerialCommand=SerialCommandParser(myChar);
           PrintParsedSerialCommand(myChar);
           if(myParsedSerialCommand.Valid==false ) {return;}
-          if((myParsedSerialCommand.XHAIR==false) && (UserConfiguration_LoadCrosshair()!=0)) {CrosshairToggleON();}  
-          if((myParsedSerialCommand.XHAIR==true) && (UserConfiguration_LoadCrosshair()==0)) {CrosshairToggleOFF();}  
+          if(myParsedSerialCommand.XHAIR==true) {CrosshairToggleON();}  
+          if(myParsedSerialCommand.XHAIR==false){CrosshairToggleOFF();}  
           if(myParsedSerialCommand.EDID!=UserConfiguration_LoadEDID()) { set_selected_edid(myParsedSerialCommand.EDID);}
           // Don't support off/low/on powerstates yet.  just power on
            if(myParsedSerialCommand.PowerSave==TargetPowerSaveFULLY_ON) {set_on_power_state(); }
@@ -749,15 +759,15 @@ void set_on_power_state(){
 }
 
 void CrosshairToggle(){
-  if(UserConfiguration_LoadCrosshair()!=0) {CrosshairToggleOFF(); } else{ CrosshairToggleON();}
+  if(UserConfiguration_LoadCrosshair()==false) {CrosshairToggleON(); } else{ CrosshairToggleOFF();}
 }
 
 void CrosshairToggleON(){
-  UserConfiguration_SaveCrosshair(1);
+  UserConfiguration_SaveCrosshair(true);
 }
 
 void CrosshairToggleOFF(){
-  UserConfiguration_SaveCrosshair(0);
+  UserConfiguration_SaveCrosshair(false);
 }
 
  void fastprinthexbyte(uint8_t hexbyte){   

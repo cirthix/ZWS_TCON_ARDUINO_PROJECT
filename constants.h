@@ -1,4 +1,4 @@
-  #ifndef CONSTANTS_h
+#ifndef CONSTANTS_h
 #define CONSTANTS_h
 
 #include <Arduino.h>
@@ -61,15 +61,18 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define BOARD_IS_EP369_REV2017          2
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define PANEL_VERSION PANEL_IS_V390DKZIS
-#define BUTTONBOARD_VERSION BUTTONBOARD_IS_ZISWORKS
-// Note: use FIRMWARE_UNIQUE_ID_OVERRIDE with old boards to keep the serial numbers in EDIDs matched.
+#define PANEL_VERSION PANEL_IS_M280GJQDZIS
+#define BUTTONBOARD_VERSION BUTTONBOARD_IS_SAMSUNG
 #define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
-//#define FIRMWARE_UNIQUE_ID_OVERRIDE 34
-
 // Note that you also have the option to change EDID configurations in edid_construction file
 // In particular, #define EDIDMetaConfigs EDIDMetaConfig_safe_configuration may be useful to change
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
+
+// Note: use FIRMWARE_UNIQUE_ID_OVERRIDE with old boards (R1 kits) to keep the serial numbers in EDIDs matched.
+#if BOARD_VERSION == BOARD_IS_EP369_REV2017
+  #define FIRMWARE_UNIQUE_ID_OVERRIDE 123
+#endif
+
 
 #include "SUPPORTED_BOARDS.h"
 #include "SUPPORTED_PANELS.h"
@@ -121,8 +124,8 @@ const uint8_t CONFIGMASK_EPMI_RS    = 0b10000000;
 const uint8_t FACTORY_DEFAULT_BACKLIGHT_BRIGHTNESS = DEFAULT_BRIGHTNESS_LEVEL ; // This default level is set in SUPPORTED_BLDRIVERS.h
 const uint8_t FACTORY_DEFAULT_POWERSTATE = TargetPowerSaveFULLY_ON ;
 const uint8_t FACTORY_DEFAULT_SELECTED_EDID = 0;
-const uint8_t FACTORY_DEFAULT_USE_CROSSHAIR = 0;
-const uint8_t FACTORY_DEFAULT_USE_OSD = 0;
+const uint8_t FACTORY_DEFAULT_USE_CROSSHAIR = false;
+const uint8_t FACTORY_DEFAULT_USE_OSD = false;
 
 const uint16_t OneMillisecond        =1;
 const uint16_t TenMilliseconds       =10;
