@@ -108,7 +108,6 @@ void UserConfiguration_SaveDefaultMagicByte();
 uint8_t DetermineIfFactoryProgrammed();  
 void write_config_eeproms();
 
-uint8_t BacklightIsOn = false;
 uint8_t SystemState = SystemState_Init;
 uint8_t ZWS_BACKLIGHT_MODE = ZWS_BACKLIGHT_MODE_INVALID;
 uint8_t CONNECTED_BACKLIGHT = CONNECTED_BACKLIGHT_IS_GENERIC;
@@ -457,15 +456,13 @@ SerialDebug(F("BacklightState : "));
     default:                        SerialDebugln(F("ZWS_INVALID"));
     };
   } else {
-    if(BacklightIsOn == true) {
+    if(BacklightGetState() == true) {
       SerialDebugln(F("InternalPWM"));
-      SerialDebug(F("Brightness=")); SerialDebugln(UserConfiguration_LoadBrightness());
+      SerialDebug(F("Brightness=")); SerialDebugln(BacklightGetBrightness());
     } else {
       SerialDebugln(F("OFF"));
     }
   }
- // if(Backlight.GetMode()!=BACKLIGHT_MODE_OFF){Backlight.PrintParameters();} 
- /*SerialFlush();Disabled*/
 }
 
 
@@ -727,10 +724,10 @@ void handle_button_state() {
     if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_INCREASE ) { SerialToBldriver.write(ASCII_CODE_FOR_BRIGHTNESS_INCREASE); return; }
     if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_DECREASE ) { SerialToBldriver.write(ASCII_CODE_FOR_BRIGHTNESS_DECREASE); return; } 
   } else {
-//  if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_INCREASE )                                                                                      { Backlight.IncrementBrightness();    return; }
-//  if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_DECREASE )                                                                                      { Backlight.DecrementBrightness();    return; }
-//  if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_INCREASE && Inputs.GetCurrentFilteredInput() != COMMAND_CODE_FOR_BRIGHTNESS_INCREASE)          { Backlight.SetBrightness();          return; }
-//  if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_DECREASE && Inputs.GetCurrentFilteredInput() != COMMAND_CODE_FOR_BRIGHTNESS_DECREASE)          { Backlight.SetBrightness();          return; }
+  if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_INCREASE )                                                                                      { BacklightIncrementBrightness();    return; }
+  if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_DECREASE )                                                                                      { BacklightDecrementBrightness();    return; }
+  if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_INCREASE && Inputs.GetCurrentFilteredInput() != COMMAND_CODE_FOR_BRIGHTNESS_INCREASE)          { BacklightIncrementBrightness(); BacklightSaveBrightness(); return; }
+  if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_DECREASE && Inputs.GetCurrentFilteredInput() != COMMAND_CODE_FOR_BRIGHTNESS_DECREASE)          { BacklightDecrementBrightness(); BacklightSaveBrightness(); return; }
   }
 
 }

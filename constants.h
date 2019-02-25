@@ -57,8 +57,8 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define BUTTONBOARD_IS_SAMSUNG_WITH_RGBLED    102
 
 
-#define BOARD_IS_DUAL_EP369_TCON        1
-#define BOARD_IS_EP369_REV2017          2
+#define BOARD_IS_DUAL_EP369_TCON        200
+#define BOARD_IS_EP369_REV2017          201
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 #define PANEL_VERSION PANEL_IS_M280GJQDZIS

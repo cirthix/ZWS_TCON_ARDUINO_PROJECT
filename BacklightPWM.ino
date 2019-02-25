@@ -1,3 +1,5 @@
+uint8_t BacklightBrightness = 0;
+uint8_t BacklightIsOn = false;
 
 void InitialConfigureBacklightPWM(){
   TIMSK2=0x00; // Disable interrupts here
@@ -5,15 +7,16 @@ void InitialConfigureBacklightPWM(){
   TCCR2B=0x00;
   //  Set fastPWM 8bit mode for each timer
   TCCR2A=0x00|(1<<WGM21)|(1<<WGM20);
-  TCCR2B=DetermineCorrectTimer2Divider(8); // Set to 4KHz
+  TCCR2B=DetermineCorrectTimer2Divider(BacklightInfo.PWM_DIVIDER);
   BacklightDisable();  
+  BacklightBrightness=UserConfiguration_LoadBrightness();
 }
 
 uint8_t DetermineCorrectTimer2Divider(uint16_t myTargetDivision){
   switch (myTargetDivision) {
-  case     1 : return 0x01;
-  case     8 : return 0x02;
-  case    32 : return 0x03;
+  case     1 : return 0x01; // 31.25KHz
+  case     8 : return 0x02; // 3.9KHz
+  case    32 : return 0x03; // 1KHz
   case    64 : return 0x04;
   case   128 : return 0x05;
   case   256 : return 0x06;
@@ -34,15 +37,43 @@ void BacklightDisable(){
 void BacklightEnable(){
   if(CONNECTED_BACKLIGHT != CONNECTED_BACKLIGHT_IS_GENERIC) {return;}
   SerialDebugln(F("BL+"));
-  pinMode(BLPIN_BLON, OUTPUT); digitalWrite(BLPIN_BLON, BacklightInfo.BACKLIGHT_ENABLE_POLARITY);
-  BacklightSetBrightness(UserConfiguration_LoadBrightness());
   BacklightIsOn = true;
+  pinMode(BLPIN_BLON, OUTPUT); digitalWrite(BLPIN_BLON, BacklightInfo.BACKLIGHT_ENABLE_POLARITY);
+  BacklightSetBrightness();
 }
 
-void BacklightSetBrightness(uint8_t TargetBrightness){
+uint8_t BacklightGetState(){
+  return BacklightIsOn;
+}
+
+uint8_t BacklightGetBrightness(){
+  return BacklightBrightness;
+}
+
+void BacklightIncrementBrightness(){
+  if(BacklightIsOn == false) {return;}
+  if(BacklightBrightness<BacklightInfo.PWM_MAX_DUTYCYCLE){
+    BacklightBrightness=BacklightBrightness+1;
+  }
+  BacklightSetBrightness();
+}
+
+void BacklightDecrementBrightness(){
+  if(BacklightIsOn == false) {return;}
+  if(BacklightBrightness>BacklightInfo.PWM_MIN_DUTYCYCLE){
+    BacklightBrightness=BacklightBrightness-1;
+  }
+  BacklightSetBrightness();
+}
+
+void BacklightSetBrightness(){
+  if(BacklightIsOn == false) {return;}
   if(CONNECTED_BACKLIGHT != CONNECTED_BACKLIGHT_IS_GENERIC) {return;}
-  uint8_t PinBrightness = TargetBrightness;
-  if(BacklightInfo.BACKLIGHT_PWM_POLARITY == LOW) { PinBrightness = 255 - TargetBrightness; }
+  uint8_t PinBrightness = BacklightBrightness;
+  if(BacklightInfo.BACKLIGHT_PWM_POLARITY == LOW) { PinBrightness = 255 - BacklightBrightness; }
   pinMode(BLPIN_PWM, OUTPUT); analogWrite(BLPIN_PWM, PinBrightness);  
 }
 
+void BacklightSaveBrightness(){
+  UserConfiguration_SaveBrightness(BacklightBrightness);  
+}

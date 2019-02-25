@@ -29,7 +29,7 @@ Chromaticities Chromaticity;
 const PanelInfo PanelInfoArray[8] = {PanelInfo_0, PanelInfo_1, PanelInfo_2, PanelInfo_3, PanelInfo_4, PanelInfo_5, PanelInfo_6, PanelInfo_7};
 
 inline void panel_print_name(){ Serial.println(PanelInfoArray[PANEL_VERSION].Name);}
-const uint16_t VIDEO_SIGNAL_TO_BACKLIGHT_ON_DELAY = 0; // MILLISECONDS signal-to-backlight delay as per panel datasheet recommendations
+const uint16_t VIDEO_SIGNAL_TO_BACKLIGHT_ON_DELAY = 600; // MILLISECONDS
 const uint8_t ADDED_DELAY_AFTER_PANEL_POWERUP = 0;
 const uint8_t DELAY_BETWEEN_BACKLIGHT_POWEROFF_AND_PANEL_POWEROFF = 100;
 
