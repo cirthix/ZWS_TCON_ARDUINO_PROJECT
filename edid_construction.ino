@@ -57,6 +57,7 @@ const EDIDMetaConfig EDIDMetaConfig_minimum_panel_clock[4] = {EDIDMetaConfig_Pro
 const EDIDMetaConfig EDIDMetaConfig_safe_rectangular_pixels[4] = {EDIDMetaConfig_Profile0, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect};
 const EDIDMetaConfig EDIDMetaConfig_minimum_rectangular_pixels[4] = {EDIDMetaConfig_Profile0x, EDIDMetaConfig_Profile2xRect, EDIDMetaConfig_Profile3xRect, EDIDMetaConfig_Profile4xRect};
 const EDIDMetaConfig EDIDMetaConfig_single_inputs_only[4] = {EDIDMetaConfig_Profile1, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
+const EDIDMetaConfig EDIDMetaConfig_all_rectangular_pixels[4] = {EDIDMetaConfig_Profile0x, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile2xRect, EDIDMetaConfig_Profile4xRect};
 
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
