@@ -56,7 +56,9 @@ uint32_t Task10000ms_previousMillis=0;
 uint32_t FinishedConfigurationTime=0;
 const uint32_t MillisToSpamConfigUART=200;
 const uint32_t MillisBetweenForwardedUARTAndSerialStatusSending=10000;
+const uint32_t MillisToEnterSelfTest=5000;
 uint32_t BlockPanelUARTSelfUpdate=0;
+uint32_t ButtonHoldTime=0;
 
 void power_down_receivers();
 void regular_operation_transmitters();
@@ -164,7 +166,7 @@ void setup(){
   SerialDebugln(F("\nINIT/DONE\n\n")); 
   /*SerialFlush();Disabled*/
   FinishedConfigurationTime=millis();
-
+  ButtonHoldTime = FinishedConfigurationTime;
 }
 
 void loop() {
@@ -695,6 +697,8 @@ void MaybeSendUARTCharToPanel(uint8_t myChar){
   }
 }
 
+uint8_t ButtonHoldHandled = false;
+uint8_t ButtonHoldMasking = false;
 void handle_button_state() {  
 // This optimization breaks on-release effects like saving the brightness and powering on/off the board, SO DON'T USE IT.
 //  if (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_UNDEFINED || Inputs.GetCurrentFilteredInput() == BUTTONSTATE_NOTHING)               {                                          return; }  // exit early if there is nothing to do
@@ -702,6 +706,29 @@ void handle_button_state() {
     uint8_t  mypowerstate=UserConfiguration_LoadShutdown();
       // Handle 'soft' button presses via serial port   
 
+
+    if(Inputs.GetCurrentFilteredInput() != Inputs.GetPreviousFilteredInput()){      
+      ButtonHoldTime = millis();    
+      ButtonHoldHandled = false;    
+    }
+    
+    if((ButtonHoldHandled == false) && (Inputs.GetCurrentFilteredInput() == Inputs.GetPreviousFilteredInput())){
+      uint32_t ButtonHeldTime = millis() - ButtonHoldTime;
+      if ( (ButtonHeldTime > MillisToEnterSelfTest ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_POWER_BUTTON) ) {
+        ButtonHoldHandled = true;
+        ButtonHoldMasking = true;
+        EnterTestMode();
+        }        
+    }
+    
+  if (
+    ((Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_NOTHING) || (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_UNDEFINED))
+    &&    
+    ((Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_NOTHING) || (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_UNDEFINED))
+    )  { ButtonHoldMasking = false; }
+  
+  if(ButtonHoldMasking == true){ return; }
+    
   // Handle regular button presses via button board    
   // Note: on button release to avoid cycling. 
   if (((Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_NOTHING) || (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_UNDEFINED)))  {
@@ -730,6 +757,14 @@ void handle_button_state() {
   if (mypowerstate==TargetPowerSaveFULLY_ON && Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_BRIGHTNESS_DECREASE && Inputs.GetCurrentFilteredInput() != COMMAND_CODE_FOR_BRIGHTNESS_DECREASE)          { BacklightDecrementBrightness(); BacklightSaveBrightness(); return; }
   }
 
+}
+
+void EnterTestMode(){
+      Serial.println(F("ENTERING TEST MODE"));
+      ACTIVE_VIDEO_MODE_FORCED_ON = true;
+      set_on_power_state();
+      while (SystemState != SystemState_On) { HandleSystemState(); }
+      SerialToPanel.println(F(" TESTPATTERNS")); 
 }
 
 void toggle_power_state() {
