@@ -765,8 +765,9 @@ void EnterTestMode(){
       set_on_power_state();
       while (SystemState != SystemState_On) { HandleSystemState(); }
       zdelay(1000);
-      SerialToBldriver.write(ASCII_CODE_FOR_SIMPLE_DEBUG_COMMAND);
       SerialToPanel.println(F(" TESTPATTERNS")); 
+      zdelay(1000);
+      SerialToBldriver.write(ASCII_CODE_FOR_SIMPLE_DEBUG_COMMAND);
 }
 
 void toggle_power_state() {

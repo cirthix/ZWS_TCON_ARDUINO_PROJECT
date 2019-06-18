@@ -37,6 +37,8 @@ ModeLine TiledFallbackMode;
 };
 
 // Note: Allcaps modes are using ultra-low vertical blanking.  This helps the user identify which config is selected
+#define EDIDMetaConfig_Profile0xTileFix { "4K120", 1, 1, ModeLine_4K120_StripeMinimal, ModeLine_4K60_StripeMinimal, true, ModeLine_4K120_StripeMinimal, ModeLine_4K60_StripeMinimal}
+#define EDIDMetaConfig_Profile0TileFix { "4k120", 1, 1, ModeLine_4K120_StripeSafe, ModeLine_4K60_StripeMinimal, true, ModeLine_4K120_StripeSafe, ModeLine_4K60_StripeMinimal}
 #define EDIDMetaConfig_Profile0x { "4K120", 1, 1, ModeLine_4K60_Safe, ModeLine_4K30_Safe, true, ModeLine_4K120_StripeMinimal, ModeLine_4K60_StripeMinimal}
 #define EDIDMetaConfig_Profile0 { "4k120", 1, 1, ModeLine_4K60_Safe, ModeLine_4K30_Safe, true, ModeLine_4K120_StripeSafe, ModeLine_4K60_StripeMinimal}
 #define EDIDMetaConfig_Profile1Alternative { "180Hz", 1, 1, ModeLine_1440p180_StripeTesting, ModeLine_1440p165_StripeSafe, true, ModeLine_1440p180_StripeTesting, ModeLine_1440p165_StripeSafe}
@@ -52,6 +54,8 @@ ModeLine TiledFallbackMode;
 #define EDIDMetaConfig_Profile3xRect { "RP360", 1, 3, ModeLine_720p360_Minimal, ModeLine_720p240_Safe, true, ModeLine_720p360_RectMinimal, ModeLine_720p360_RectMinimal}
 #define EDIDMetaConfig_Profile4xRect { "RP480", 1, 4, ModeLine_540p480_Minimal, ModeLine_540p240_Safe, true, ModeLine_540p480_RectMinimal, ModeLine_540p480_RectMinimal}
 
+const EDIDMetaConfig EDIDMetaConfig_safe_configurationTileFix[4] = {EDIDMetaConfig_Profile0TileFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
+const EDIDMetaConfig EDIDMetaConfig_minimum_panel_clockTileFix[4] = {EDIDMetaConfig_Profile0xTileFix, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_safe_configuration[4] = {EDIDMetaConfig_Profile0, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_minimum_panel_clock[4] = {EDIDMetaConfig_Profile0x, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_safe_rectangular_pixels[4] = {EDIDMetaConfig_Profile0, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect};
@@ -61,7 +65,7 @@ const EDIDMetaConfig EDIDMetaConfig_all_rectangular_pixels[4] = {EDIDMetaConfig_
 
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define EDIDMetaConfigs EDIDMetaConfig_safe_configuration
+#define EDIDMetaConfigs EDIDMetaConfig_minimum_panel_clockTileFix
 #define TRY_TO_ADD_CEA_EXTENSION_BLOCK false
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 
