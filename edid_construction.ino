@@ -25,6 +25,8 @@
 #define ModeLine_540p480_RectMinimal  { 533.760, 1920, 16, 32, 32, 540, 3, 5, 8 }
 #define ModeLine_540p480_RectSafe  { 549.12, 1920, 16, 32, 32, 540, 3, 5, 27 }
 
+#define ModeLine_TripleHeadArray  { 180.00, 3840, 16, 32, 32, 800, 3, 5, 27 }
+
 struct EDIDMetaConfig {
 char NameSuffix[5];
 uint8_t PixelScalingH;
@@ -63,9 +65,23 @@ const EDIDMetaConfig EDIDMetaConfig_minimum_rectangular_pixels[4] = {EDIDMetaCon
 const EDIDMetaConfig EDIDMetaConfig_single_inputs_only[4] = {EDIDMetaConfig_Profile1, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_all_rectangular_pixels[4] = {EDIDMetaConfig_Profile0x, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile2xRect, EDIDMetaConfig_Profile4xRect};
 
+struct VideoWallConfig_t {
+uint8_t NumTilesPerDisplay; // Note: assumed horizontal left/right split within each display
+uint8_t NumDisplaysH; // Note: counting starts from one
+uint8_t NumDisplaysV; // Note: counting starts from one
+uint8_t MyPositionH; // Note: counting starts from zero
+uint8_t MyPositionV; // Note: counting starts from zero
+};
+
+const VideoWallConfig_t VideoWallConfigSingle = {2, 1, 1, 0, 0};
+const VideoWallConfig_t VideoWallConfigDual   = {2, 2, 1, 0, 0};
+const VideoWallConfig_t VideoWallConfigTriple = {2, 3, 1, 0, 0};
+const VideoWallConfig_t VideoWallConfigQuad   = {2, 2, 2, 0, 0};
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 #define EDIDMetaConfigs EDIDMetaConfig_minimum_panel_clockTileFix
+// Note that if you are using video wall functionality, FIRMWARE_UNIQUE_ID_OVERRIDE must be forced to be the same for all tiles in constants file
+#define VideoWallConfig VideoWallConfigSingle
 #define TRY_TO_ADD_CEA_EXTENSION_BLOCK false
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 
@@ -138,9 +154,9 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t PanelID, uint8_t EDID
     // Add a DiD block
       myEDID.DiDCreateBlock(); 
       if(AmPrimary == true){
-      myEDID.DiDAddTiledDescriptor("ZIS", BasePID + EDIDMetaConfigID, SerialNumber, 2, 1, 0, 0, EDIDMetaConfigs[EDIDMetaConfigID].TiledPreferredMode.HActive, EDIDMetaConfigs[EDIDMetaConfigID].TiledPreferredMode.VActive);
+      myEDID.DiDAddTiledDescriptor("ZIS", BasePID + EDIDMetaConfigID, SerialNumber, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.NumDisplaysH, VideoWallConfig.NumDisplaysV, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.MyPositionH, VideoWallConfig.MyPositionV, EDIDMetaConfigs[EDIDMetaConfigID].TiledPreferredMode.HActive, EDIDMetaConfigs[EDIDMetaConfigID].TiledPreferredMode.VActive);
       } else {
-      myEDID.DiDAddTiledDescriptor("ZIS", BasePID + EDIDMetaConfigID, SerialNumber, 2, 1, 1, 0, EDIDMetaConfigs[EDIDMetaConfigID].TiledPreferredMode.HActive, EDIDMetaConfigs[EDIDMetaConfigID].TiledPreferredMode.VActive);
+      myEDID.DiDAddTiledDescriptor("ZIS", BasePID + EDIDMetaConfigID, SerialNumber, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.NumDisplaysH, VideoWallConfig.NumDisplaysV, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.MyPositionH+1, VideoWallConfig.MyPositionV, EDIDMetaConfigs[EDIDMetaConfigID].TiledPreferredMode.HActive, EDIDMetaConfigs[EDIDMetaConfigID].TiledPreferredMode.VActive);
       }
       myEDID.DiDAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].TiledPreferredMode, ImageHeightInMillimeters, ImageWidthInMillimeters/2);
       myEDID.DiDAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].TiledFallbackMode, ImageHeightInMillimeters, ImageWidthInMillimeters/2);
