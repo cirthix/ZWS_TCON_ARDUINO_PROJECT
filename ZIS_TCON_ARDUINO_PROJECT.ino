@@ -632,6 +632,17 @@ void do_factory_configuration() {
   UserConfiguration_SaveDefaultBrightness();
   UserConfiguration_SaveDefaultOSD();
   UserConfiguration_SaveDefaultCrosshair();
+  
+  Serial.println(F("EDID 0 Primary"));   GenerateEDIDWithParameters(true,  PANEL_VERSION, 0, MagicByte()); myEDID.PrintEDID();   
+  Serial.println(F("EDID 0 Secondary")); GenerateEDIDWithParameters(false, PANEL_VERSION, 0, MagicByte()); myEDID.PrintEDID();   
+  Serial.println(F("EDID 1 Primary"));   GenerateEDIDWithParameters(true,  PANEL_VERSION, 1, MagicByte()); myEDID.PrintEDID();   
+  Serial.println(F("EDID 1 Secondary")); GenerateEDIDWithParameters(false, PANEL_VERSION, 1, MagicByte()); myEDID.PrintEDID();   
+  Serial.println(F("EDID 2 Primary"));   GenerateEDIDWithParameters(true,  PANEL_VERSION, 2, MagicByte()); myEDID.PrintEDID();   
+  Serial.println(F("EDID 2 Secondary")); GenerateEDIDWithParameters(false, PANEL_VERSION, 2, MagicByte()); myEDID.PrintEDID();   
+  Serial.println(F("EDID 3 Primary"));   GenerateEDIDWithParameters(true,  PANEL_VERSION, 3, MagicByte()); myEDID.PrintEDID();   
+  Serial.println(F("EDID 3 Secondary")); GenerateEDIDWithParameters(false, PANEL_VERSION, 3, MagicByte()); myEDID.PrintEDID();   
+
+    
   write_config_eeproms(); 
   UserConfiguration_SaveDefaultMagicByte();
   softReset();

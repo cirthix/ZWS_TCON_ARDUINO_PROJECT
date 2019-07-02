@@ -24,8 +24,9 @@
 #define ModeLine_720p360_RectSafe  { 576.00, 1920, 16, 32, 32, 720, 3, 5, 72 }
 #define ModeLine_540p480_RectMinimal  { 533.760, 1920, 16, 32, 32, 540, 3, 5, 8 }
 #define ModeLine_540p480_RectSafe  { 549.12, 1920, 16, 32, 32, 540, 3, 5, 27 }
-
-#define ModeLine_TripleHeadArray  { 180.00, 3840, 16, 32, 32, 800, 3, 5, 27 }
+#define ModeLine_60OriginalTripleHeadArray  { 213.00, 3840, 64, 64, 352, 800, 3, 10, 10 }
+#define ModeLine_60TripleHeadArray  { 213.84, 3840, 64, 64, 352, 800, 3, 10, 13 }
+#define ModeLine_72TripleHeadArray  { 255.42, 3840, 64, 64, 332, 800, 3, 10, 13 }
 
 struct EDIDMetaConfig {
 char NameSuffix[5];
@@ -56,6 +57,11 @@ ModeLine TiledFallbackMode;
 #define EDIDMetaConfig_Profile3xRect { "RP360", 1, 3, ModeLine_720p360_Minimal, ModeLine_720p240_Safe, true, ModeLine_720p360_RectMinimal, ModeLine_720p360_RectMinimal}
 #define EDIDMetaConfig_Profile4xRect { "RP480", 1, 4, ModeLine_540p480_Minimal, ModeLine_540p240_Safe, true, ModeLine_540p480_RectMinimal, ModeLine_540p480_RectMinimal}
 
+#define EDIDMetaConfig_TripleHeadTestSimpleSingle    { "3Head", 1, 4, ModeLine_60OriginalTripleHeadArray, ModeLine_60OriginalTripleHeadArray, false, ModeLine_60OriginalTripleHeadArray, ModeLine_60OriginalTripleHeadArray}
+#define EDIDMetaConfig_TripleHeadTestSimpleTile      { "ArrTH", 1, 4, ModeLine_60OriginalTripleHeadArray, ModeLine_60OriginalTripleHeadArray, true, ModeLine_60OriginalTripleHeadArray, ModeLine_60OriginalTripleHeadArray}
+#define EDIDMetaConfig_TripleHeadTestTimingFixSingle { "+Head", 1, 4, ModeLine_72TripleHeadArray, ModeLine_60TripleHeadArray, false, ModeLine_72TripleHeadArray, ModeLine_60TripleHeadArray}
+#define EDIDMetaConfig_TripleHeadTestTimingFixTile   { "+Arry", 1, 4, ModeLine_72TripleHeadArray, ModeLine_60TripleHeadArray, true, ModeLine_72TripleHeadArray, ModeLine_60TripleHeadArray}
+
 const EDIDMetaConfig EDIDMetaConfig_safe_configurationTileFix[4] = {EDIDMetaConfig_Profile0TileFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_minimum_panel_clockTileFix[4] = {EDIDMetaConfig_Profile0xTileFix, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_safe_configuration[4] = {EDIDMetaConfig_Profile0, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
@@ -64,6 +70,8 @@ const EDIDMetaConfig EDIDMetaConfig_safe_rectangular_pixels[4] = {EDIDMetaConfig
 const EDIDMetaConfig EDIDMetaConfig_minimum_rectangular_pixels[4] = {EDIDMetaConfig_Profile0x, EDIDMetaConfig_Profile2xRect, EDIDMetaConfig_Profile3xRect, EDIDMetaConfig_Profile4xRect};
 const EDIDMetaConfig EDIDMetaConfig_single_inputs_only[4] = {EDIDMetaConfig_Profile1, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_all_rectangular_pixels[4] = {EDIDMetaConfig_Profile0x, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile2xRect, EDIDMetaConfig_Profile4xRect};
+
+const EDIDMetaConfig EDIDMetaConfig_tripleheadtest[4] = {EDIDMetaConfig_TripleHeadTestSimpleSingle, EDIDMetaConfig_TripleHeadTestSimpleTile, EDIDMetaConfig_TripleHeadTestTimingFixSingle, EDIDMetaConfig_TripleHeadTestTimingFixTile};
 
 struct VideoWallConfig_t {
 uint8_t NumTilesPerDisplay; // Note: assumed horizontal left/right split within each display
@@ -79,7 +87,7 @@ const VideoWallConfig_t VideoWallConfigTriple = {2, 3, 1, 0, 0};
 const VideoWallConfig_t VideoWallConfigQuad   = {2, 2, 2, 0, 0};
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define EDIDMetaConfigs EDIDMetaConfig_minimum_panel_clockTileFix
+#define EDIDMetaConfigs EDIDMetaConfig_tripleheadtest
 // Note that if you are using video wall functionality, FIRMWARE_UNIQUE_ID_OVERRIDE must be forced to be the same for all tiles in constants file
 #define VideoWallConfig VideoWallConfigSingle
 #define TRY_TO_ADD_CEA_EXTENSION_BLOCK false
