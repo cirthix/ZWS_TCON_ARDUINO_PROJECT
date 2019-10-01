@@ -881,7 +881,7 @@ void write_config_eeproms(){
     power_up_receivers();  
     delay(millis_disconnect_for_zeroed_edid);
     power_down_receivers();
-    GenerateEDIDWithParameters(not I_AM_A_SECONDARY, PANEL_VERSION, TargetProfile, SerialNumber);
+    GenerateEDIDWithParameters(not I_AM_A_SECONDARY, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
@@ -894,13 +894,13 @@ void write_config_eeproms(){
     delay(millis_disconnect_for_zeroed_edid);
     power_down_receivers();
     
-    GenerateEDIDWithParameters(true, PANEL_VERSION, TargetProfile, SerialNumber);
+    GenerateEDIDWithParameters(true, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
     update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
-    
-    GenerateEDIDWithParameters(false, PANEL_VERSION, TargetProfile, SerialNumber);
+
+    GenerateEDIDWithParameters(false, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI()); 

@@ -93,11 +93,16 @@ void SetU28H750EDID(){
   } 
 }
 
-void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t PanelID, uint8_t EDIDMetaConfigID, uint32_t SerialNumber){
+void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t PanelID, uint8_t EDIDMetaConfigID, uint32_t SerialNumber){
 //  SetU28H750EDID(); return;  // Sometimes, it is useful to try with a known-good EDID
   myEDID.Reset();
-  
-  if(AmPrimary == false && (EDIDMetaConfigs[EDIDMetaConfigID].IncludesDiDTileBlock == false)) {return;}
+  if(AmPrimary == false && (EDIDMetaConfigs[EDIDMetaConfigID].IncludesDiDTileBlock == false)) {
+    if(AmCloned == true) {
+      return GenerateEDIDWithParameters(true, AmCloned, PanelID, EDIDMetaConfigID, SerialNumber);
+    } else {
+      return;
+    }
+  }
   uint16_t BasePID = 20180;
 
   uint16_t TotalImageWidthInPixels = EDIDMetaConfigs[EDIDMetaConfigID].PreferredMode.HActive;

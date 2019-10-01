@@ -61,12 +61,14 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define BOARD_IS_EP369_REV2017          201
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define PANEL_VERSION PANEL_IS_M280GJQDZIS
-#define BUTTONBOARD_VERSION BUTTONBOARD_IS_SAMSUNG
+#define PANEL_VERSION PANEL_IS_M280GJC3ZIS
+#define BUTTONBOARD_VERSION BUTTONBOARD_IS_ZISWORKS
 #define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
 // Note that you also have the option to change EDID configurations in edid_construction file
 // In particular, #define EDIDMetaConfigs EDIDMetaConfig_safe_configuration may be useful to change
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
+#define ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE false
+
 
 // Note: use FIRMWARE_UNIQUE_ID_OVERRIDE with old boards (R1 kits) to keep the serial numbers in EDIDs matched.
 #if BOARD_VERSION == BOARD_IS_EP369_REV2017
