@@ -57,6 +57,7 @@ uint32_t FinishedConfigurationTime=0;
 const uint32_t MillisToSpamConfigUART=200;
 const uint32_t MillisBetweenForwardedUARTAndSerialStatusSending=10000;
 const uint32_t MillisToEnterSelfTest=5000;
+const uint32_t MillisToEnterEDIDUpdate=250;
 uint32_t BlockPanelUARTSelfUpdate=0;
 uint32_t ButtonHoldTime=0;
 
@@ -718,7 +719,56 @@ void handle_button_state() {
         ButtonHoldHandled = true;
         ButtonHoldMasking = true;
         EnterTestMode();
+        return;
         }        
+      if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_0) ) {
+        ButtonHoldHandled = true;
+        ButtonHoldMasking = true;
+        set_selected_edid(0);
+        return;
+        }       
+      if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_1) ) {
+        ButtonHoldHandled = true;
+        ButtonHoldMasking = true;
+        set_selected_edid(1);
+        return;
+        }              
+      if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_2) ) {
+        ButtonHoldHandled = true;
+        ButtonHoldMasking = true;
+        set_selected_edid(2);
+        return;
+        }            
+      if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_3) ) {
+        ButtonHoldHandled = true;
+        ButtonHoldMasking = true;
+        set_selected_edid(3);
+        return;
+        }              
+      if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_4) ) {
+        ButtonHoldHandled = true;
+        ButtonHoldMasking = true;
+        set_selected_edid(4);
+        return;
+        }             
+      if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_5) ) {
+        ButtonHoldHandled = true;
+        ButtonHoldMasking = true;
+        set_selected_edid(5);
+        return;
+        }             
+      if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_6) ) {
+        ButtonHoldHandled = true;
+        ButtonHoldMasking = true;
+        set_selected_edid(6);
+        return;
+        }             
+      if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_7) ) {
+        ButtonHoldHandled = true;
+        ButtonHoldMasking = true;
+        set_selected_edid(7);
+        return;
+        }       
     }
     
   if (
@@ -733,14 +783,6 @@ void handle_button_state() {
   // Note: on button release to avoid cycling. 
   if (((Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_NOTHING) || (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_UNDEFINED)))  {
     if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_POWER_BUTTON)  { toggle_power_state();               return; }
-    if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_EDID_0)        { set_selected_edid(0);               return; }
-    if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_EDID_1)        { set_selected_edid(1);               return; }
-    if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_EDID_2)        { set_selected_edid(2);               return; }
-    if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_EDID_3)        { set_selected_edid(3);               return; }
-    if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_EDID_4)        { set_selected_edid(4);               return; }
-    if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_EDID_5)        { set_selected_edid(5);               return; }
-    if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_EDID_6)        { set_selected_edid(6);               return; }
-    if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_EDID_7)        { set_selected_edid(7);               return; }
     if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_CROSSHAIR)     { CrosshairToggle();                  return; }
     if(CONNECTED_BACKLIGHT == CONNECTED_BACKLIGHT_IS_ZWS){
       if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_TOGGLE_STEREO_EYE)  { SerialToBldriver.write(ASCII_CODE_FOR_TOGGLE_STEREO_EYE); return;}

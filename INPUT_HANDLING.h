@@ -4,7 +4,8 @@
 #include "constants.h"
 
 #define FILTERDEPTH_INPUT 8
-        
+
+const uint8_t ASCII_CODE_FOR_SPECIAL_COMMANDS       = 0x24; // '$' is the special debug code
 const uint8_t ASCII_CODE_FOR_BL_MODE_IS_PWM         = 0x11; // Nonprintable character 0x11 is "Device control 1" in the ascii table.
 const uint8_t ASCII_CODE_FOR_BL_MODE_IS_NOPWM       = 0x12; // Nonprintable character 0x12 is "Device control 2" in the ascii table.
 const uint8_t ASCII_CODE_FOR_BL_MODE_IS_STROBE      = 0x13; // Nonprintable character 0x13 is "Device control 3" in the ascii table.

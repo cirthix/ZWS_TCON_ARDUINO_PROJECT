@@ -24,8 +24,9 @@
 #define ModeLine_720p360_RectSafe  { 576.00, 1920, 16, 32, 32, 720, 3, 5, 72 }
 #define ModeLine_540p480_RectMinimal  { 533.760, 1920, 16, 32, 32, 540, 3, 5, 8 }
 #define ModeLine_540p480_RectSafe  { 549.12, 1920, 16, 32, 32, 540, 3, 5, 27 }
-
+#define ModeLine_ROGPhoneII  { 342.72, 1080, 40, 40, 40, 2340, 2, 6, 32 }
 #define ModeLine_TripleHeadArray  { 180.00, 3840, 16, 32, 32, 800, 3, 5, 27 }
+
 
 struct EDIDMetaConfig {
 char NameSuffix[5];
@@ -55,6 +56,7 @@ ModeLine TiledFallbackMode;
 #define EDIDMetaConfig_Profile2xRect { "RP240", 1, 2, ModeLine_1080p240_Minimal, ModeLine_1080p120_Safe, true, ModeLine_1080p240_Minimal, ModeLine_1080p240_Minimal}
 #define EDIDMetaConfig_Profile3xRect { "RP360", 1, 3, ModeLine_720p360_Minimal, ModeLine_720p240_Safe, true, ModeLine_720p360_RectMinimal, ModeLine_720p360_RectMinimal}
 #define EDIDMetaConfig_Profile4xRect { "RP480", 1, 4, ModeLine_540p480_Minimal, ModeLine_540p240_Safe, true, ModeLine_540p480_RectMinimal, ModeLine_540p480_RectMinimal}
+#define EDIDMetaConfig_RogPhoneIIEmulation { "ROG 2", 1, 1, ModeLine_ROGPhoneII, ModeLine_ROGPhoneII, false, ModeLine_ROGPhoneII, ModeLine_ROGPhoneII}
 
 const EDIDMetaConfig EDIDMetaConfig_safe_configurationTileFix[4] = {EDIDMetaConfig_Profile0TileFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_minimum_panel_clockTileFix[4] = {EDIDMetaConfig_Profile0xTileFix, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
@@ -64,6 +66,7 @@ const EDIDMetaConfig EDIDMetaConfig_safe_rectangular_pixels[4] = {EDIDMetaConfig
 const EDIDMetaConfig EDIDMetaConfig_minimum_rectangular_pixels[4] = {EDIDMetaConfig_Profile0x, EDIDMetaConfig_Profile2xRect, EDIDMetaConfig_Profile3xRect, EDIDMetaConfig_Profile4xRect};
 const EDIDMetaConfig EDIDMetaConfig_single_inputs_only[4] = {EDIDMetaConfig_Profile1, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_all_rectangular_pixels[4] = {EDIDMetaConfig_Profile0x, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile2xRect, EDIDMetaConfig_Profile4xRect};
+const EDIDMetaConfig EDIDMetaConfig_RogPhoneII[4] = {EDIDMetaConfig_RogPhoneIIEmulation, EDIDMetaConfig_RogPhoneIIEmulation, EDIDMetaConfig_RogPhoneIIEmulation, EDIDMetaConfig_RogPhoneIIEmulation};
 
 struct VideoWallConfig_t {
 uint8_t NumTilesPerDisplay; // Note: assumed horizontal left/right split within each display
