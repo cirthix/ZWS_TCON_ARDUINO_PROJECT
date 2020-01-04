@@ -112,6 +112,7 @@ uint8_t DetermineIfFactoryProgrammed();
 void write_config_eeproms();
 
 uint8_t SystemState = SystemState_Init;
+uint8_t StatusLEDState = SystemState_PowerOff;
 uint8_t ZWS_BACKLIGHT_MODE = ZWS_BACKLIGHT_MODE_INVALID;
 uint8_t CONNECTED_BACKLIGHT = CONNECTED_BACKLIGHT_IS_GENERIC;
 const uint8_t PowerStateInvalid = 0;
@@ -725,30 +726,35 @@ void handle_button_state() {
         ButtonHoldHandled = true;
         ButtonHoldMasking = true;
         set_selected_edid(0);
+        set_on_power_state();
         return;
         }       
       if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_1) ) {
         ButtonHoldHandled = true;
         ButtonHoldMasking = true;
         set_selected_edid(1);
+        set_on_power_state();
         return;
         }              
       if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_2) ) {
         ButtonHoldHandled = true;
         ButtonHoldMasking = true;
         set_selected_edid(2);
+        set_on_power_state();
         return;
         }            
       if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_3) ) {
         ButtonHoldHandled = true;
         ButtonHoldMasking = true;
         set_selected_edid(3);
+        set_on_power_state();
         return;
         }              
       if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_4) ) {
         ButtonHoldHandled = true;
         ButtonHoldMasking = true;
         set_selected_edid(4);
+        set_on_power_state();
         return;
         }             
       if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_5) ) {
@@ -761,12 +767,14 @@ void handle_button_state() {
         ButtonHoldHandled = true;
         ButtonHoldMasking = true;
         set_selected_edid(6);
+        set_on_power_state();
         return;
         }             
       if ( (ButtonHeldTime > MillisToEnterEDIDUpdate ) && (Inputs.GetCurrentFilteredInput() == COMMAND_CODE_FOR_EDID_7) ) {
         ButtonHoldHandled = true;
         ButtonHoldMasking = true;
         set_selected_edid(7);
+        set_on_power_state();
         return;
         }       
     }
@@ -966,7 +974,8 @@ uint8_t update_eeprom(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp_
 }
 
 
-const uint8_t EEPROM_WRITE_TIME = 5+1;   // Time between i2c eeprom writes, needed for 24c02/24c08 to complete internal operations
+const uint8_t EEPROM_WRITE_TIME = 9+1;   // Time between i2c eeprom writes, needed for 24c02/24c08 to complete internal operations.  6ms works fine.  Slower to give status led more time to blink
+const uint8_t BlinkDividerMax = 8; // Make flashing of status LED more visible
 uint8_t update_eeprom_page_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp_virtualeeprom)(uint8_t address )){
     wdt_reset();  
     SerialDebug(F("Page8PROG: IIC 0x")); fastprinthexbyte(eeprom_address); SerialDebug(F("\t")); /*SerialFlush();Disabled*/
@@ -976,6 +985,7 @@ uint8_t update_eeprom_page_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uin
     uint16_t failures = 0;
     uint16_t current_address = 0;
     current_address = 0;
+    uint8_t BlinkDivider = BlinkDividerMax;
     while(current_address <= 0xff ){            
         /*SerialFlush();Disabled*/
         for(uint16_t addr=0; addr<pagesize; addr++){bytearray[addr]=fp_virtualeeprom(current_address+addr);} 
@@ -983,6 +993,12 @@ uint8_t update_eeprom_page_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uin
         if ( tretval != 0) {        failures++;   SerialDebug("*");   } else {SerialDebug(".");}
         current_address=current_address+pagesize;
         zdelay(EEPROM_WRITE_TIME);  // Time between writes
+        if(BlinkDivider==0){
+          BlinkDivider = BlinkDividerMax;
+          BlinkStateLED();
+        } else { 
+          BlinkDivider = BlinkDivider -1;
+        }
     }
     SerialDebug(F(" IIC writes done, "));
     SerialDebug(failures);
@@ -996,6 +1012,7 @@ uint8_t update_eeprom_byte_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uin
     uint8_t tretval=0xff;
     uint16_t failures = 1;
     uint16_t current_address = 0;
+    uint8_t BlinkDivider = BlinkDividerMax;
     while (failures > 0) {
         failures = 0;
         for (current_address = 0; current_address <= 0xff; current_address++ ) {
@@ -1003,6 +1020,12 @@ uint8_t update_eeprom_byte_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uin
             tretval=my_SoftIIC->MasterWriteByte( eeprom_address,  current_address,  fp_virtualeeprom(current_address), 1 );
             if ( tretval != 0) {        failures++;   SerialDebug("*");   } else {SerialDebug(".");}     
             zdelay(EEPROM_WRITE_TIME);  // Time between writes
+            if(BlinkDivider==0){
+              BlinkDivider = BlinkDividerMax;
+              BlinkStateLED();
+            } else { 
+              BlinkDivider = BlinkDivider -1;
+            }
         }
         SerialDebug(F(" IIC writes done, "));
         SerialDebug(failures);
@@ -1017,8 +1040,12 @@ uint8_t update_eeprom_byte_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uin
 
 
   
-uint8_t StatusLEDState = 0;
+  
 void UpdateStatusLEDBuffer(){
+  #ifdef LED_STATUS
+    if(SystemState==SystemState_On){ StatusLEDState = SystemState_On;}
+    else { StatusLEDState = SystemState_PowerOff;}
+  #endif
   #ifdef LED_RGB
   uint8_t LED_STATE_INDICATOR;
   switch (SystemState) {
@@ -1039,13 +1066,18 @@ void UpdateStatusLEDBuffer(){
       break;
     default                        : LED_STATE_INDICATOR = LED_STATE_INDICATOR_ERROR ;   
   }
-  value.r=LED_STATE_INDICATOR_COLORS[LED_STATE_INDICATOR].r;
-  value.g=LED_STATE_INDICATOR_COLORS[LED_STATE_INDICATOR].g;
-  value.b=LED_STATE_INDICATOR_COLORS[LED_STATE_INDICATOR].b;
-  LED.set_crgb_at(0, value); // Set value at LED found at index 0  
+  UpdateStatusLEDBuffer(LED_STATE_INDICATOR);
   #endif
 }
 
+void UpdateStatusLEDBuffer(uint8_t myLEDState){
+  #ifdef LED_RGB
+  value.r=LED_STATE_INDICATOR_COLORS[myLEDState].r;
+  value.g=LED_STATE_INDICATOR_COLORS[myLEDState].g;
+  value.b=LED_STATE_INDICATOR_COLORS[myLEDState].b;
+  LED.set_crgb_at(0, value); // Set value at LED found at index 0  
+  #endif
+}
 
 uint8_t SkipSameLEDCount=0;
 const uint8_t ResendLED = 250; // Reduce same-state retransmits by this ratio
@@ -1068,10 +1100,21 @@ uint8_t IsSerialPortBusy(){
   return ((UCSR0A & (1<<TXC0))>0) ;  
 }
 
+void BlinkStateLED(){ // Used when changing EDIDs
+  if(StatusLEDState == SystemState_On){
+    UpdateStatusLEDBuffer(LED_STATE_INDICATOR_ERROR);
+    StatusLEDState = SystemState_PowerOff;
+  } else {
+    UpdateStatusLEDBuffer(LED_STATE_INDICATOR_POWERSAVE); 
+    StatusLEDState = SystemState_On;   
+  }
+    UpdateStateLED();
+}
+
 void UpdateStateLED(){ 
   #ifdef LED_STATUS
     pinMode(LED_STATUS, OUTPUT);
-    if(SystemState==SystemState_On){ digitalWrite(LED_STATUS, HIGH);}
+    if(StatusLEDState==SystemState_On){ digitalWrite(LED_STATUS, HIGH);}
     else digitalWrite(LED_STATUS, LOW);
   #endif
   
