@@ -109,10 +109,13 @@ void EDID::SetReportedGammaValueTimes100(uint16_t value){
   EDID::SetByte(0x17, EncodedValue);
 }
 
+void EDID::SetRGB444WithNoDPMSWithNoNativeTimingsAndNoContinuiousFrequency(){
+  EDID::SetByte(0x18, 0x04);
+}
+
 void EDID::SetRGB444WithNoDPMSWithNativeTimingsAndNoContinuiousFrequency(){
   EDID::SetByte(0x18, 0x06);
 }
-
 uint8_t ConvertChromaticityUint16ToLowByte(uint16_t value){
   uint8_t LowByte = uint8_t(value & 0x0003);  
   return LowByte;
@@ -181,6 +184,7 @@ void EDID::SetNoGenericVideoModes(){
 
 
 void EDID::AddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
+  if(myModeLine.HActive==0) { Serial.print(F("SkippingDTD")); return; }
   EDID::AddDetailedDescriptorTiming18BytesToOffset(EDID::GetDetailedDescriptorBlockOffset(), myModeLine, HSizeInMilliMeters, VSizeInMilliMeters);
   EDID::IncrementNumberOfFilledDescriptorBlocks();
 }
@@ -287,6 +291,7 @@ void EDID::CEAAddHDMI(){
 void EDID::CEAAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
   const uint8_t CEA_DTD_SIZE = 18;
   uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2) + NumberOfFilledCEADescriptorBlocks * CEA_DTD_SIZE;
+  if(myModeLine.HActive==0) { Serial.print(F("SkippingDTD")); return; }
   Serial.print(F("myEntry=")); Serial.println(NumberOfFilledCEADescriptorBlocks);
   Serial.print(F("myByteOffset=")); Serial.println(myByteOffset);
   EDID::AddDetailedDescriptorTiming18BytesToOffset(myByteOffset, myModeLine, HSizeInMilliMeters, VSizeInMilliMeters);
@@ -355,8 +360,15 @@ void EDID::DiDAddTiledDescriptor(uint8_t ManufacturerID[3], uint16_t ProductID, 
   EDID::SetByte(myOffset + 0x00, 0x12);  // DiD Tiled block ID
   EDID::SetByte(myOffset + 0x01, 0x00);  // DiD Tiled block ID version
   EDID::SetByte(myOffset + 0x02, 0x16);  // DiD Tiled block ID payload size
-  EDID::SetByte(myOffset + 0x03, 0b10001001);  // Partial driven behavior : tiles to their locations, no bezels, single enclosure
- // EDID::SetByte(myOffset + 0x03, 0x80);  // Disable tiled config when not all tiles are present, no bezels, single enclosure.  Hopefully this defaults to EDID preferred timing mode with tiled topology disabled.
+
+  // Current shipping zws value is EDID::SetByte(myOffset + 0x03, 0b10001001);  // Partial driven behavior : tiles to their locations, no bezels, single enclosure
+
+  if(HTileLocation + VTileLocation*HTiles == 0){    
+  EDID::SetByte(myOffset + 0x03, 0x82); // Image scaled to fit
+  } else {    
+  EDID::SetByte(myOffset + 0x03, 0x80); // "Described elsewhere"
+  }
+  
   EDID::SetByte(myOffset + 0x04, (((OffsetHTiles&0x000F)<<4) | (OffsetVTiles&0x000F)));
   EDID::SetByte(myOffset + 0x05, ((((HTileLocation)&0x000F)<<4) | ((VTileLocation)&0x000F)));
   EDID::SetByte(myOffset + 0x06, ((((OffsetHTiles&0x0030)>>4)<<6) | (((OffsetVTiles&0x0030)>>4)<<4)| (((HTileLocation&0x0030)>>4)<<2)| (((VTileLocation&0x0030)>>4)<<0)));
@@ -384,6 +396,7 @@ void EDID::DiDAddTiledDescriptor(uint8_t ManufacturerID[3], uint16_t ProductID, 
 
 void EDID::DiDAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
   uint8_t myOffset = EDID::DiDGetDescriptorOffset();
+  if(myModeLine.HActive==0) { Serial.print(F("SkippingDTD")); return; }
   if(DiDDetailedDescriptorByteCountAddress == 0x00){
     DiDDetailedDescriptorByteCountAddress = myOffset + 0x02;
     EDID::DiDAddToByteCount(0x17);  

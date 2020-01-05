@@ -41,6 +41,7 @@ public:
   void SetPhysicalWidthInCentimeters(uint8_t value);
   void SetPhysicalHeightInCentimeters(uint8_t value);
   void SetReportedGammaValueTimes100(uint16_t value);
+  void SetRGB444WithNoDPMSWithNoNativeTimingsAndNoContinuiousFrequency();
   void SetRGB444WithNoDPMSWithNativeTimingsAndNoContinuiousFrequency();
   void SetReportedChromaticites(Chromaticities myChromaticities);
   void SetNoLegacyStandardVideoModes();
