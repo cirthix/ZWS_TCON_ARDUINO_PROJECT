@@ -200,12 +200,11 @@ void EDID::AddDetailedDescriptorRangeLimitsOnly(uint16_t MinVHz, uint16_t MaxVHz
   uint8_t PostOffsetMinHKhz;
   uint8_t PostOffsetMaxHKhz;
   if(MinVHz >255) {LimitOffsets = LimitOffsets | 0x01; PostOffsetMinVHz  = MinVHz  - 255; } else {PostOffsetMinVHz  = MinVHz  ;}
-  if(MaxVHz >255) {LimitOffsets = LimitOffsets | 0x02; PostOffsetMinVHz  = MaxVHz  - 255; } else {PostOffsetMaxVHz  = MaxVHz  ;}
+  if(MaxVHz >255) {LimitOffsets = LimitOffsets | 0x02; PostOffsetMaxVHz  = MaxVHz  - 255; } else {PostOffsetMaxVHz  = MaxVHz  ;}
   if(MinHKhz>255) {LimitOffsets = LimitOffsets | 0x04; PostOffsetMinHKhz = MinHKhz - 255; } else {PostOffsetMinHKhz = MinHKhz ;}
   if(MaxHKhz>255) {LimitOffsets = LimitOffsets | 0x08; PostOffsetMaxHKhz = MaxHKhz - 255; } else {PostOffsetMaxHKhz = MaxHKhz ;}
 
   EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x04, LimitOffsets);
-
   EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x05, PostOffsetMinVHz);
   EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x06, PostOffsetMaxVHz);
   EDID::SetByte(EDID::GetDetailedDescriptorBlockOffset() + 0x07, PostOffsetMinHKhz);
@@ -245,6 +244,14 @@ uint8_t EDID::GetDetailedDescriptorBlockOffset(){
 void EDID::IncrementNumberOfFilledDescriptorBlocks(){
   if(NumberOfFilledDescriptorBlocks < MaxNumberOfFilledDescriptorBlocks) {
     NumberOfFilledDescriptorBlocks = NumberOfFilledDescriptorBlocks +1;
+  }
+}
+
+boolean EDID::QueryIfAllDescriptorBlocksAreUsed(){
+  if(NumberOfFilledDescriptorBlocks < MaxNumberOfFilledDescriptorBlocks) {
+    return false;
+  } else { 
+    return true;
   }
 }
 

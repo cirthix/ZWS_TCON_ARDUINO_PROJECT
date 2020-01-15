@@ -97,11 +97,12 @@ TiledMetaConfig myTiledMetaConfig; // If preferred mode is present, we assume th
 
 
 const EDIDMetaConfig EDIDMetaConfig_SHIPPING[4] = {EDIDMetaConfig_Profile0IntelFixx, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile3x, EDIDMetaConfig_Profile4x};
+const EDIDMetaConfig EDIDMetaConfig_NEW_SHIPPING[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternativex, EDIDMetaConfig_Profile2Rectx};
 const EDIDMetaConfig EDIDMetaConfig_SIMPLE[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull};
 const EDIDMetaConfig EDIDMetaConfig_MOREBLANKING[4] = {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3x, EDIDMetaConfig_Profile4x};
 const EDIDMetaConfig EDIDMetaConfig_RECTANGULAR[4] = {EDIDMetaConfig_Profile0IntelFixx, EDIDMetaConfig_Profile2Rectx, EDIDMetaConfig_Profile3Rectx, EDIDMetaConfig_Profile4Rectx};
-const EDIDMetaConfig EDIDMetaConfig_GOODOPTIONS[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternativex, EDIDMetaConfig_Profile2Rectx};
-const EDIDMetaConfig EDIDMetaConfig_TWEAKER[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_Profile1Alternativex, EDIDMetaConfig_Profile2Rectx, EDIDMetaConfig_Profile3Rectx};
+
+const EDIDMetaConfig EDIDMetaConfig_DP_TEST[4] = {EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2};
 
 struct VideoWallConfig_t {
 uint8_t NumTilesPerDisplay; // Note: assumed horizontal left/right split within each display
@@ -117,10 +118,10 @@ const VideoWallConfig_t VideoWallConfigTriple = {2, 3, 1, 0, 0};
 const VideoWallConfig_t VideoWallConfigQuad   = {2, 2, 2, 0, 0};
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define EDIDMetaConfigs EDIDMetaConfig_TWEAKER
+#define EDIDMetaConfigs EDIDMetaConfig_SHIPPING
 // Note that if you are using video wall functionality, FIRMWARE_UNIQUE_ID_OVERRIDE must be forced to be the same for all tiles in constants file
 #define VideoWallConfig VideoWallConfigSingle
-#define TRY_TO_ADD_CEA_EXTENSION_BLOCK false
+#define TRY_TO_ADD_CEA_EXTENSION_BLOCK true
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 
 void SetU28H750EDID(){
@@ -191,7 +192,7 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   myEDID.SetManufacturerProductCode(BasePID + EDIDMetaConfigID);
   myEDID.SetManufacturerSerialNumber(SerialNumber);
   myEDID.SetManufactureWeek(1);
-  myEDID.SetManufactureYear(2018);
+  myEDID.SetManufactureYear(2020);
   myEDID.SetDisplayPort10Bit();
   myEDID.SetPhysicalWidthInCentimeters(round(myImageDimensions.ImageWidthInMillimeters/10));
   myEDID.SetPhysicalHeightInCentimeters(round(myImageDimensions.ImageHeightInMillimeters/10));
@@ -205,7 +206,10 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   //if( ((EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive != 0) && (AmPrimary == false))) { SkipDTDs = true; } // Experimental fix for intel graphics : remove preferred timing mode on secondary output base block
 
   if(SkipDTDs == false) {
-    for(uint8_t j=0; j<EDID_BASE_SLOTS; j++){
+    uint8_t SlotsToPutIntoBaseBlock = EDID_BASE_SLOTS;
+    if((EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive == 0) && (TRY_TO_ADD_CEA_EXTENSION_BLOCK == true)){ SlotsToPutIntoBaseBlock = 1; } 
+
+    for(uint8_t j=0; j<SlotsToPutIntoBaseBlock; j++){
       myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingH[j],    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingV[j],        EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].VActive );
       myEDID.AddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
     }
@@ -213,11 +217,17 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
     myEDID.SetRGB444WithNoDPMSWithNoNativeTimingsAndNoContinuiousFrequency();
   }
   
-  // myEDID.AddDetailedDescriptorRangeLimitsOnly(30, 120, 132, 264, 540);
-  if(EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[EDID_BASE_SLOTS-1].HActive == 0) {
+
+  if(myEDID.QueryIfAllDescriptorBlocksAreUsed() == false) {
    myEDID.AddDetailedDescriptorName(DetailedDescriptorNameLength, DetailedDescriptorName);
   }
-  // Note: HDMI block is not needed, no audio and no freesync 
+  
+  if(myEDID.QueryIfAllDescriptorBlocksAreUsed() == false) {
+   myEDID.AddDetailedDescriptorRangeLimitsOnly(30, 480, 132, 280, 540); // Reasonably safe range
+   // myEDID.AddDetailedDescriptorRangeLimitsOnly(30, 480, 64, 300, 600); // Extended/unsafe range
+  }
+  
+  // Note: HDMI block is not really needed, no audio and no freesync 
   if(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive != 0) {
   // Add a DiD block
       myEDID.DiDCreateBlock(); 
@@ -232,16 +242,16 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
       myEDID.DiDSetChecksum(); 
       myEDID.FixChecksumExtensionBlock();
   } else {
-    #if TRY_TO_ADD_CEA_EXTENSION_BLOCK == true
+    if(TRY_TO_ADD_CEA_EXTENSION_BLOCK == true){
     // Add a CEA block
       myEDID.CEACreateBlock(); 
       myEDID.CEAAddHDMI();
-      for(uint8_t j=0; j<EDID_BASE_SLOTS; j++){
+      for(uint8_t j=1; j<EDID_BASE_SLOTS; j++){ // Note: first block is in base block, don't duplicate
         myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingH[j],    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingV[j],        EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].VActive );
         myEDID.CEAAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
       }
       myEDID.FixChecksumExtensionBlock();
-    #endif
+  }
   }
   myEDID.FixChecksumBaseBlock();
 }

@@ -59,6 +59,7 @@ public:
   void DiDAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters);
   void DiDSetChecksum();
   void PrintEDID();
+  boolean QueryIfAllDescriptorBlocksAreUsed();
 private:
   const uint8_t MaxNumberOfFilledDescriptorBlocks = 4;
   uint8_t DiDPreferred = 0x80;
