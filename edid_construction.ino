@@ -1,6 +1,8 @@
 #include "edid.h"
 #include "supported_panels.h"
 
+
+
 // "Minimal" modelines use extremely small blankings to minimize panel clock, but can potentially have compatibilitiy issues or gpu power state implications (eg: GPU not dropping to idle clocks)
 // "Safe" modelines use small but not minimal blankings in order to maximize compatibility.  Problems from these timings should be rare.
 // "Extreme" modes are likely to cause problems with many setups, but may work for some.
@@ -29,79 +31,98 @@
 // The modes below this line are for zisworks internal testing only, don't use them on x28/x39
 #define ModeLine_ROGPhoneII  { 342.72, 1080, 40, 40, 40, 2340, 2, 6, 32 }
 #define ModeLine_TripleHeadArray  { 180.00, 3840, 16, 32, 32, 800, 3, 5, 27 }
+#ifndef PreferMinimalTimings
+  #error "Must set timing preference"
+#endif
+#if PreferMinimalTimings == true
+  #define ModeLine_4K120_Stripe ModeLine_4K120_StripeMinimal
+  #define ModeLine_1080p240Hz ModeLine_1080p240_Minimal 
+#else
+  #define ModeLine_4K120_Stripe ModeLine_4K120_StripeSafe
+  #define ModeLine_1080p240Hz ModeLine_1080p240_Safe 
+#endif
 
 
+
+
+#define EDID_DID_MODELINE_SLOTS 1
 struct TiledMetaConfig {
 uint8_t PixelScalingH;
 uint8_t PixelScalingV;
-ModeLine TiledPreferredMode;
-ModeLine TiledFallbackMode;
-// Note: DiD tile defines a resolution, so all tiled modes must keep the same resolution.  Only use fallback for reduced refresh rate for legacy host devices
+ModeLine myModeLine[EDID_DID_MODELINE_SLOTS]; // Note: using the fourth slot (if nodified to do so) will remove the monitor name string from the EDID
+// Note: DiD tile defines a resolution, so all tiled modes must keep the same resolution.
+// Originally included a fallback for reduced refresh rate for legacy host devices, but this ended up being confusing to end users, so it was removed.
 };
 
-#define TiledMetaConfig_Invalid       { 1, 1, ModeLine_Null, ModeLine_Null}
-#define TiledMetaConfig_Profile0      { 1, 1, ModeLine_4K120_StripeSafe, ModeLine_4K60_StripeMinimal }
-#define TiledMetaConfig_Profile0x     { 1, 1, ModeLine_4K120_StripeMinimal, ModeLine_4K60_StripeMinimal }
-#define TiledMetaConfig_Profile0z     { 1, 1, ModeLine_4K120_StripeMinimal, ModeLine_Null }
-#define TiledMetaConfig_Profile1      { 1, 1, ModeLine_1440p165_StripeSafe, ModeLine_Null }
-#define TiledMetaConfig_Profile1x     { 1, 1, ModeLine_1440p180_StripeExtreme, ModeLine_Null }
-#define TiledMetaConfig_Profile2Rect  { 1, 2, ModeLine_1080p240_Safe, ModeLine_Null }
-#define TiledMetaConfig_Profile2Rectx { 1, 2, ModeLine_1080p240_Minimal, ModeLine_Null}
-#define TiledMetaConfig_Profile3Rectx { 1, 3, ModeLine_720p360_RectMinimal, ModeLine_Null}
-#define TiledMetaConfig_Profile4Rectx { 1, 4, ModeLine_540p480_RectMinimal, ModeLine_Null}
+#define TiledMetaConfig_Invalid       { 1, 1, ModeLine_Null, }
+#define TiledMetaConfig_Profile0      { 1, 1, ModeLine_4K120_Stripe }
+#define TiledMetaConfig_Profile1      { 1, 1, ModeLine_1440p165_StripeSafe }
+#define TiledMetaConfig_Profile1_x    { 1, 1, ModeLine_1440p180_StripeExtreme }
+#define TiledMetaConfig_Profile2Rect  { 1, 2, ModeLine_1080p240Hz}
+#define TiledMetaConfig_Profile3Rect  { 1, 3, ModeLine_720p360_RectMinimal}
+#define TiledMetaConfig_Profile4Rect  { 1, 4, ModeLine_540p480_RectMinimal}
 
-#define EDID_BASE_SLOTS 4
+#define EDID_BASE_MODELINE_SLOTS 3
 struct BaseMetaConfig {
-uint8_t PixelScalingH[EDID_BASE_SLOTS];
-uint8_t PixelScalingV[EDID_BASE_SLOTS];
-ModeLine myModeLine[EDID_BASE_SLOTS]; // Note: using the fourth slot will remove the monitor name string from the EDID
+uint8_t PixelScalingH[EDID_BASE_MODELINE_SLOTS];
+uint8_t PixelScalingV[EDID_BASE_MODELINE_SLOTS];
+ModeLine myModeLine[EDID_BASE_MODELINE_SLOTS]; // Note: using the fourth slot (if nodified to do so) will remove the monitor name string from the EDID
 };
 
-#define BaseMetaConfig_Invalid       { {1,1,1,1}, {1,1,1,1}, {ModeLine_Null, ModeLine_Null, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_FullThree     { {2,3,4,1}, {2,3,4,1}, {ModeLine_1080p240_Safe, ModeLine_720p360_Minimal, ModeLine_540p480_Minimal, ModeLine_Null}}
-#define BaseMetaConfig_FullThreex    { {2,3,4,1}, {2,3,4,1}, {ModeLine_1080p240_Minimal, ModeLine_720p360_Minimal, ModeLine_540p480_Minimal, ModeLine_Null}}
-#define BaseMetaConfig_FullCombo     { {1,2,3,4}, {1,2,3,4}, {ModeLine_4K60_Safe, ModeLine_1080p240_Safe, ModeLine_720p360_Minimal, ModeLine_540p480_Minimal}}
-#define BaseMetaConfig_FullCombox    { {1,2,3,4}, {1,2,3,4}, {ModeLine_4K60_Safe, ModeLine_1080p240_Minimal, ModeLine_720p360_Minimal, ModeLine_540p480_Minimal}}
-#define BaseMetaConfig_Stripe        { {1,1,1,1}, {1,1,1,1}, {ModeLine_4K120_StripeMinimal, ModeLine_4K60_StripeMinimal, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Stripex       { {1,1,1,1}, {1,1,1,1}, {ModeLine_4K120_StripeSafe, ModeLine_4K60_StripeMinimal, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Profile0      { {1,1,1,1}, {1,1,1,1}, {ModeLine_4K60_Safe, ModeLine_4K30_Safe, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Profile1      { {1,1,1,1}, {1,1,1,1}, {ModeLine_1440p165_StripeSafe, ModeLine_Null, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Profile1x     { {1,1,1,1}, {1,1,1,1}, {ModeLine_1440p180_StripeExtreme, ModeLine_Null, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Profile2      { {2,2,1,1}, {2,2,1,1}, {ModeLine_1080p240_Safe, ModeLine_1080p120_Safe, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Profile2x     { {2,2,1,1}, {2,2,1,1}, {ModeLine_1080p240_Minimal, ModeLine_1080p120_Safe, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Profile3x     { {3,3,1,1}, {3,3,1,1}, {ModeLine_720p360_Minimal, ModeLine_720p240_Safe, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Profile4x     { {4,4,1,1}, {4,4,1,1}, {ModeLine_540p480_Minimal, ModeLine_540p240_Safe, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_Invalid      { {1,1,1}, {1,1,1}, {ModeLine_Null, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_LegacyOnly   { {1,1,1}, {1,1,1}, {ModeLine_1080p60_Safe, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_FullThree    { {2,3,4}, {2,3,4}, {ModeLine_1080p240Hz, ModeLine_720p360_Minimal, ModeLine_540p480_Minimal}}
+#define BaseMetaConfig_Stripe       { {1,1,1}, {1,1,1}, {ModeLine_4K120_Stripe, ModeLine_4K60_StripeMinimal, ModeLine_Null}}
+#define BaseMetaConfig_Stripe_n     { {1,1,1}, {1,1,1}, {ModeLine_4K120_Stripe, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_Profile0     { {1,1,1}, {1,1,1}, {ModeLine_4K60_Safe, ModeLine_4K30_Safe, ModeLine_Null}}
+#define BaseMetaConfig_Profile0_n   { {1,1,1}, {1,1,1}, {ModeLine_4K60_Safe, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_Profile1     { {1,1,1}, {1,1,1}, {ModeLine_1440p165_StripeSafe, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_Profile1_x   { {1,1,1}, {1,1,1}, {ModeLine_1440p180_StripeExtreme, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_Profile2     { {2,2,1}, {2,2,1}, {ModeLine_1080p240Hz, ModeLine_1080p120_Safe, ModeLine_Null}}
+#define BaseMetaConfig_Profile2_n   { {2,1,1}, {2,1,1}, {ModeLine_1080p240Hz, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_Profile3     { {3,3,1}, {3,3,1}, {ModeLine_720p360_Minimal, ModeLine_720p240_Safe, ModeLine_Null}}
+#define BaseMetaConfig_Profile4     { {4,4,1}, {4,4,1}, {ModeLine_540p480_Minimal, ModeLine_540p240_Safe, ModeLine_Null}}
+
+#define EDID_CEA_MODELINE_SLOTS 4
+struct CEAMetaConfig {
+uint8_t PixelScalingH[EDID_CEA_MODELINE_SLOTS];
+uint8_t PixelScalingV[EDID_CEA_MODELINE_SLOTS];
+ModeLine myModeLine[EDID_CEA_MODELINE_SLOTS]; // Note: using the fourth slot will remove the monitor name string from the EDID
+};
+
+#define CEAMetaConfig_Invalid       { {1,1,1,1}, {1,1,1,1}, {ModeLine_Null, ModeLine_Null, ModeLine_Null, ModeLine_Null}}
+#define CEAMetaConfig_FullCombo     { {1,2,3,4}, {1,2,3,4}, {ModeLine_4K60_Safe, ModeLine_1080p240Hz, ModeLine_720p360_Minimal, ModeLine_540p480_Minimal}}
+
 
 struct EDIDMetaConfig {
 char NameSuffix[5];
 BaseMetaConfig myBaseMetaConfig;
 TiledMetaConfig myTiledMetaConfig; // If preferred mode is present, we assume that the two tiles left/right in arrangement.  If not present, the secondary DP interface will disconnect from host.
+CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this CEA block in its place
 };
-#define EDIDMetaConfig_ComboFull { "1MODE", BaseMetaConfig_FullThreex, TiledMetaConfig_Profile0z}
-#define EDIDMetaConfig_ComboLegacy { "COMBO", BaseMetaConfig_FullCombo, TiledMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile0 { "4k120", BaseMetaConfig_Profile0, TiledMetaConfig_Profile0}
-#define EDIDMetaConfig_Profile0x { "4K120", BaseMetaConfig_Profile0, TiledMetaConfig_Profile0x}
-#define EDIDMetaConfig_Profile0IntelFix { "4k120", BaseMetaConfig_Stripe, TiledMetaConfig_Profile0}
-#define EDIDMetaConfig_Profile0IntelFixx { "4K120", BaseMetaConfig_Stripex, TiledMetaConfig_Profile0x}
-#define EDIDMetaConfig_Profile1 { "4k60 ", BaseMetaConfig_Profile0, TiledMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile1Alternative { "165Hz", BaseMetaConfig_Profile1, TiledMetaConfig_Profile1}
-#define EDIDMetaConfig_Profile1Alternativex { "180Hz", BaseMetaConfig_Profile1x, TiledMetaConfig_Profile1x}
-#define EDIDMetaConfig_Profile2 { "240Hz", BaseMetaConfig_Profile2, TiledMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile2x { "240HZ", BaseMetaConfig_Profile2x, TiledMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile3x { "360HZ", BaseMetaConfig_Profile3x, TiledMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile4x { "480HZ", BaseMetaConfig_Profile4x, TiledMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile2Rect { "Rp240", BaseMetaConfig_Profile2, TiledMetaConfig_Profile2Rect}
-#define EDIDMetaConfig_Profile2Rectx { "RP240", BaseMetaConfig_Profile2x, TiledMetaConfig_Profile2Rectx}
-#define EDIDMetaConfig_Profile3Rectx { "RP360", BaseMetaConfig_Profile3x, TiledMetaConfig_Profile3Rectx}
-#define EDIDMetaConfig_Profile4Rectx { "RP480", BaseMetaConfig_Profile4x, TiledMetaConfig_Profile4Rectx}
+// Configs with CEA blocks
+#define EDIDMetaConfig_ComboLegacy { "combo", BaseMetaConfig_LegacyOnly, TiledMetaConfig_Invalid, CEAMetaConfig_FullCombo}
+#define EDIDMetaConfig_Combo { "COMBO", BaseMetaConfig_Profile2_n, TiledMetaConfig_Invalid, CEAMetaConfig_FullCombo}
+// Configs for tiled modes
+#define EDIDMetaConfig_ComboFull { "1MODE", BaseMetaConfig_FullThree, TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile0 { "4k120", BaseMetaConfig_Profile0, TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile0IntelFix { "4k120", BaseMetaConfig_Stripe, TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1Alternative { "165Hz", BaseMetaConfig_Profile1, TiledMetaConfig_Profile1, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1Alternativex { "180Hz", BaseMetaConfig_Profile1x, TiledMetaConfig_Profile1x, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile2Rect { "Rp240", BaseMetaConfig_Profile2, TiledMetaConfig_Profile2Rect, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile3Rect { "RP360", BaseMetaConfig_Profile3, TiledMetaConfig_Profile3Rect, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile4Rect { "RP480", BaseMetaConfig_Profile4, TiledMetaConfig_Profile4Rect, CEAMetaConfig_Invalid}
+// Configs for a single mode
+#define EDIDMetaConfig_Profile1 { "4k60 ", BaseMetaConfig_Profile0, TiledMetaConfig_Invalid, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile2 { "240Hz", BaseMetaConfig_Profile2, TiledMetaConfig_Invalid, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile3 { "360HZ", BaseMetaConfig_Profile3, TiledMetaConfig_Invalid, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile4 { "480HZ", BaseMetaConfig_Profile4, TiledMetaConfig_Invalid, CEAMetaConfig_Invalid}
 
 
-const EDIDMetaConfig EDIDMetaConfig_SHIPPING[4] = {EDIDMetaConfig_Profile0IntelFixx, EDIDMetaConfig_Profile2x, EDIDMetaConfig_Profile3x, EDIDMetaConfig_Profile4x};
-const EDIDMetaConfig EDIDMetaConfig_NEW_SHIPPING[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternativex, EDIDMetaConfig_Profile2Rectx};
-const EDIDMetaConfig EDIDMetaConfig_SIMPLE[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull};
-const EDIDMetaConfig EDIDMetaConfig_MOREBLANKING[4] = {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3x, EDIDMetaConfig_Profile4x};
-const EDIDMetaConfig EDIDMetaConfig_RECTANGULAR[4] = {EDIDMetaConfig_Profile0IntelFixx, EDIDMetaConfig_Profile2Rectx, EDIDMetaConfig_Profile3Rectx, EDIDMetaConfig_Profile4Rectx};
-
+const EDIDMetaConfig EDIDMetaConfig_SHIPPING[4] = {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
+const EDIDMetaConfig EDIDMetaConfig_NEW_SHIPPING[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternative, EDIDMetaConfig_Profile2Rect};
+const EDIDMetaConfig EDIDMetaConfig_ONLY_ONE_EDID[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull};
+const EDIDMetaConfig EDIDMetaConfig_RECTANGULAR[4] = {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect};
 const EDIDMetaConfig EDIDMetaConfig_DP_TEST[4] = {EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2};
 
 struct VideoWallConfig_t {
@@ -121,8 +142,8 @@ const VideoWallConfig_t VideoWallConfigQuad   = {2, 2, 2, 0, 0};
 #define EDIDMetaConfigs EDIDMetaConfig_SHIPPING
 // Note that if you are using video wall functionality, FIRMWARE_UNIQUE_ID_OVERRIDE must be forced to be the same for all tiles in constants file
 #define VideoWallConfig VideoWallConfigSingle
-#define TRY_TO_ADD_CEA_EXTENSION_BLOCK true
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
+
 
 void SetU28H750EDID(){
   const uint8_t StockSamsungEDID[] = {0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x4C, 0x2D, 0x4D, 0x0C, 0x4A, 0x53, 0x4D, 0x30, 0x10, 0x1C, 0x01, 0x04, 0xB5, 0x3D, 0x23, 0x78, 0x3B, 0x5F, 0xB1, 0xA2, 0x57, 0x4F, 0xA2, 0x28, 0x0F, 0x50, 0x54, 0x23, 0x08, 0x00, 0x81, 0x00, 0x81, 0xC0, 0x81, 0x80, 0xA9, 0xC0, 0xB3, 0x00, 0x95, 0x00, 0x01, 0x01, 0x01, 0x01, 0x4D, 0xD0, 0x00, 0xA0, 0xF0, 0x70, 0x3E, 0x80, 0x30, 0x20, 0x35, 0x00, 0x5F, 0x59, 0x21, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0xFD, 0x00, 0x28, 0x3C, 0x87, 0x87, 0x3C, 0x01, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x55, 0x32, 0x38, 0x45, 0x35, 0x39, 0x30, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x48, 0x54, 0x50, 0x4B, 0x34, 0x30, 0x39, 0x36, 0x38, 0x34, 0x0A, 0x20, 0x20, 0x01, 0xD8, 0x02, 0x03, 0x0E, 0xF0, 0x41, 0x10, 0x23, 0x09, 0x07, 0x07, 0x83, 0x01, 0x00, 0x00, 0x02, 0x3A, 0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C, 0x45, 0x00, 0x5F, 0x59, 0x21, 0x00, 0x00, 0x1E, 0x56, 0x5E, 0x00, 0xA0, 0xA0, 0xA0, 0x29, 0x50, 0x30, 0x20, 0x35, 0x00, 0x5F, 0x59, 0x21, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xBF};
@@ -147,10 +168,11 @@ struct ImageDimensions_t ImageSizeCalculator(float PanelDPI, uint8_t PixelScalin
 
 
 void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t PanelID, uint8_t EDIDMetaConfigID, uint32_t SerialNumber){
+  
 //  SetU28H750EDID(); return;  // Sometimes, it is useful to try with a known-good EDID
   ImageDimensions_t myImageDimensions;
   myEDID.Reset();
-  if(AmPrimary == false && (EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive == 0)) {
+  if(AmPrimary == false && (EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive == 0)) {
     if(AmCloned == true) {
       return GenerateEDIDWithParameters(true, AmCloned, PanelID, EDIDMetaConfigID, SerialNumber);
     } else {
@@ -159,10 +181,10 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   }
   uint16_t BasePID = 20180;
 
-  if(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive == 0) {
+  if(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive == 0) {
   myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingH[0],    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingV[0],        EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[0].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[0].VActive );
   } else {
-  myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingH,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingV,        EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive*2,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.VActive );    
+  myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingH,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingV,        EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive*2,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].VActive );    
   }
 
   
@@ -206,9 +228,8 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   //if( ((EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive != 0) && (AmPrimary == false))) { SkipDTDs = true; } // Experimental fix for intel graphics : remove preferred timing mode on secondary output base block
 
   if(SkipDTDs == false) {
-    uint8_t SlotsToPutIntoBaseBlock = EDID_BASE_SLOTS;
-    if((EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive == 0) && (TRY_TO_ADD_CEA_EXTENSION_BLOCK == true)){ SlotsToPutIntoBaseBlock = 1; } 
-
+    uint8_t SlotsToPutIntoBaseBlock = EDID_BASE_MODELINE_SLOTS;
+//    if((EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive == 0) && (TRY_TO_ADD_CEA_EXTENSION_BLOCK == true)){ SlotsToPutIntoBaseBlock = 1; } 
     for(uint8_t j=0; j<SlotsToPutIntoBaseBlock; j++){
       myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingH[j],    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingV[j],        EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].VActive );
       myEDID.AddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
@@ -228,32 +249,30 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   }
   
   // Note: HDMI block is not really needed, no audio and no freesync 
-  if(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive != 0) {
+  if(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive != 0) {
   // Add a DiD block
       myEDID.DiDCreateBlock(); 
       uint8_t myPositionH=VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.MyPositionH;
       if(AmPrimary == false){myPositionH = myPositionH+1;}
-      myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingH,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingV,        EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.VActive );
-      myEDID.DiDAddTiledDescriptor("ZIS", BasePID + EDIDMetaConfigID, SerialNumber, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.NumDisplaysH, VideoWallConfig.NumDisplaysV, myPositionH, VideoWallConfig.MyPositionV, EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive, EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.VActive);
-      myEDID.DiDAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode, myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
-      myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingH,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingV,        EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledFallbackMode.HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledFallbackMode.VActive );
+      myEDID.DiDAddTiledDescriptor("ZIS", BasePID + EDIDMetaConfigID, SerialNumber, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.NumDisplaysH, VideoWallConfig.NumDisplaysV, myPositionH, VideoWallConfig.MyPositionV, EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive, EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].VActive);
 
-      myEDID.DiDAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledFallbackMode, myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
+      for(uint8_t j=0; j<EDID_DID_MODELINE_SLOTS; j++){
+        myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingH,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingV,        EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[j].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[j].VActive );
+        myEDID.DiDAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
+      }
       myEDID.DiDSetChecksum(); 
       myEDID.FixChecksumExtensionBlock();
   } else {
-    if(TRY_TO_ADD_CEA_EXTENSION_BLOCK == true){
+  if(EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.myModeLine[0].HActive != 0) {
     // Add a CEA block
       myEDID.CEACreateBlock(); 
       myEDID.CEAAddHDMI();
-      for(uint8_t j=1; j<EDID_BASE_SLOTS; j++){ // Note: first block is in base block, don't duplicate
-        myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingH[j],    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingV[j],        EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].VActive );
-        myEDID.CEAAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
+      for(uint8_t j=0; j<EDID_CEA_MODELINE_SLOTS; j++){
+        myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.PixelScalingH[j],    EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.PixelScalingV[j],        EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.myModeLine[j].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.myModeLine[j].VActive );
+        myEDID.CEAAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
       }
       myEDID.FixChecksumExtensionBlock();
   }
   }
   myEDID.FixChecksumBaseBlock();
 }
-
-

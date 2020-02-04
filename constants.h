@@ -62,10 +62,12 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 #define PANEL_VERSION PANEL_IS_M280GJQDZIS
+
 #define BUTTONBOARD_VERSION BUTTONBOARD_IS_SAMSUNG
 #define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
 // Note that you also have the option to change EDID configurations in edid_construction file
-// In particular, #define EDIDMetaConfigs EDIDMetaConfig_safe_configuration may be useful to change
+#define PreferMinimalTimings true
+
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 #define ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE false
 

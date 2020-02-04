@@ -11,12 +11,12 @@ const uint8_t CEABlockOffset = EDID_BLOCK_SIZE;
 struct ModeLine{
   float PixelClock;
   uint16_t HActive;  
-  uint16_t HFP;
-  uint16_t HSW;
-  uint16_t HBP;
+  uint8_t HFP; // Technically can be 16 bits, but we don't use that feature here.
+  uint8_t HSW; // Technically can be 16 bits, but we don't use that feature here.
+  uint8_t HBP; // Technically can be 16 bits, but we don't use that feature here.
   uint16_t VActive;
-  uint16_t VFP;
-  uint16_t VSW;
+  uint8_t VFP; // Technically can be 16 bits, but we don't use that feature here.
+  uint8_t VSW; // Technically can be 16 bits, but we don't use that feature here.
   uint16_t VBP;  
 };
 
