@@ -139,7 +139,7 @@ const VideoWallConfig_t VideoWallConfigTriple = {2, 3, 1, 0, 0};
 const VideoWallConfig_t VideoWallConfigQuad   = {2, 2, 2, 0, 0};
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define EDIDMetaConfigs EDIDMetaConfig_SHIPPING
+#define EDIDMetaConfigs EDIDMetaConfig_NEW_SHIPPING
 // Note that if you are using video wall functionality, FIRMWARE_UNIQUE_ID_OVERRIDE must be forced to be the same for all tiles in constants file
 #define VideoWallConfig VideoWallConfigSingle
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
