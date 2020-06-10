@@ -916,6 +916,9 @@ void CheckEPMIConfig(){
 }
 
 void write_config_eeproms(){  
+  #if DEBUG_OPTION_SKIP_EDID_PROGRAMMING == true
+    return;
+  #endif
     uint32_t dp_rx_shutdown_millis = millis();
     const uint32_t millis_disconnect_for_dp_edid_change = 1000;
     const uint32_t millis_disconnect_for_zeroed_edid = 1000;

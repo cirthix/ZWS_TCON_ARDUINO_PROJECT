@@ -66,14 +66,14 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
 // Note that you also have the option to change EDID configurations in edid_construction file
 #define PreferMinimalTimings true
-
-//////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 #define ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE false
+#define DEBUG_OPTION_SKIP_EDID_PROGRAMMING false
+//////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 
 
 // Note: use FIRMWARE_UNIQUE_ID_OVERRIDE with old boards (R1 kits) to keep the serial numbers in EDIDs matched.
 #if BOARD_VERSION == BOARD_IS_EP369_REV2017
-  #define FIRMWARE_UNIQUE_ID_OVERRIDE 123
+  #define FIRMWARE_UNIQUE_ID_OVERRIDE 19
 #endif
 
 
@@ -81,14 +81,14 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #include "SUPPORTED_PANELS.h"
 #include "SUPPORTED_BLDRIVERS.h"
 #include "SUPPORTED_BUTTONBOARDS.h"
-
-const uint16_t ADDRESS_MAGIC_BYTE               = 16;
-const uint16_t ADDRESS_POWER_STATE              = 17;
-const uint16_t ADDRESS_SELECTED_EDID            = 18;
-const uint16_t ADDRESS_BACKLIGHT_LEVEL          = 19;
-const uint16_t ADDRESS_OSD_ENABLED              = 20;
-const uint16_t ADDRESS_CROSSHAIR_ENABLED        = 21;
-const uint16_t ADDRESS_WAS_SECONDARY                = 22;
+const uint16_t ADDRESS_OFFSET                   = 16;
+const uint16_t ADDRESS_MAGIC_BYTE               = 0+ADDRESS_OFFSET;
+const uint16_t ADDRESS_POWER_STATE              = 1+ADDRESS_OFFSET;
+const uint16_t ADDRESS_SELECTED_EDID            = 2+ADDRESS_OFFSET;
+const uint16_t ADDRESS_BACKLIGHT_LEVEL          = 3+ADDRESS_OFFSET;
+const uint16_t ADDRESS_OSD_ENABLED              = 4+ADDRESS_OFFSET;
+const uint16_t ADDRESS_CROSSHAIR_ENABLED        = 5+ADDRESS_OFFSET;
+const uint16_t ADDRESS_WAS_SECONDARY            = 6+ADDRESS_OFFSET;
 
 const uint8_t BUTTON_SENSE_TIME = 5;   // 1 TICK IS 1 MICROCSECOND
 

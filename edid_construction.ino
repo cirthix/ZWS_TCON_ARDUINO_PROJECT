@@ -76,6 +76,11 @@ ModeLine myModeLine[EDID_CEA_MODELINE_SLOTS]; // Note: using the fourth slot wil
 
 #define CEAMetaConfig_Invalid       { {1,1,1,1}, {1,1,1,1}, {ModeLine_Null, ModeLine_Null, ModeLine_Null, ModeLine_Null}}
 #define CEAMetaConfig_FullCombo     { {1,2,3,4}, {1,2,3,4}, {ModeLine_4K60_Safe, ModeLine_1080p240Hz, ModeLine_720p360_Minimal, ModeLine_540p480_Minimal}}
+#define CEAMetaConfig_FastModes     { {2,3,4,1}, {2,3,4,1}, {ModeLine_1080p240Hz, ModeLine_720p360_Minimal, ModeLine_540p480_Minimal, ModeLine_Null}}
+#define CEAMetaConfig_Profile1      { {1,1,1,1}, {1,1,1,1}, {ModeLine_4K60_Safe, ModeLine_Null, ModeLine_Null, ModeLine_Null}}
+#define CEAMetaConfig_Profile2      { {2,1,1,1}, {2,1,1,1}, {ModeLine_1080p240Hz, ModeLine_1080p120_Safe, ModeLine_Null, ModeLine_Null}}
+#define CEAMetaConfig_Profile3      { {3,3,1,1}, {3,3,1,1}, {ModeLine_720p360_Minimal, ModeLine_720p240_Safe, ModeLine_Null, ModeLine_Null}}
+#define CEAMetaConfig_Profile4      { {4,4,1,1}, {4,4,1,1}, {ModeLine_540p480_Minimal, ModeLine_540p240_Safe, ModeLine_Null, ModeLine_Null}}
 
 
 #define EDID_DID_MODELINE_SLOTS 1
@@ -96,35 +101,35 @@ ModeLine myModeLine[EDID_DID_MODELINE_SLOTS]; // Note: using the fourth slot (if
 #define TiledMetaConfig_Profile4Rect  { 1, 4, ModeLine_540p480_RectMinimal}
 
 struct EDIDMetaConfig {
-unsigned char NameSuffix[6];
+uint8_t NameSuffix[5];
 BaseMetaConfig myBaseMetaConfig;
 TiledMetaConfig myTiledMetaConfig; // If preferred mode is present, we assume that the two tiles left/right in arrangement.  If not present, the secondary DP interface will disconnect from host.
 CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this CEA block in its place
 };
 
 // Configs with CEA blocks
-#define EDIDMetaConfig_ComboLegacy          { "combo", BaseMetaConfig_LegacyOnly, TiledMetaConfig_Invalid, CEAMetaConfig_FullCombo}
-#define EDIDMetaConfig_Combo                { "COMBO", BaseMetaConfig_Profile2_n, TiledMetaConfig_Invalid, CEAMetaConfig_FullCombo}
+#define EDIDMetaConfig_ComboLegacy          { {'c', 'o', 'm', 'b', 'o'}, BaseMetaConfig_LegacyOnly, TiledMetaConfig_Invalid, CEAMetaConfig_FullCombo}
+#define EDIDMetaConfig_Combo                { {'C', 'O', 'M', 'B', 'O'}, BaseMetaConfig_Profile0_n, TiledMetaConfig_Invalid, CEAMetaConfig_FastModes}
 // Configs for tiled modes
-#define EDIDMetaConfig_ComboFull            { "1MODE", BaseMetaConfig_FullThree,  TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile0             { "4k120", BaseMetaConfig_Profile0,   TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile0IntelFix     { "4k120", BaseMetaConfig_Stripe,     TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile1Alternative  { "165Hz", BaseMetaConfig_Profile1,   TiledMetaConfig_Profile1, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile1Alternativex { "180Hz", BaseMetaConfig_Profile1x,  TiledMetaConfig_Profile1x, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile2Rect         { "Rp240", BaseMetaConfig_Profile2,   TiledMetaConfig_Profile2Rect, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile3Rect         { "RP360", BaseMetaConfig_Profile3,   TiledMetaConfig_Profile3Rect, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile4Rect         { "RP480", BaseMetaConfig_Profile4,   TiledMetaConfig_Profile4Rect, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_ComboFull            { {'1', 'M', 'O', 'D', 'E'}, BaseMetaConfig_FullThree,  TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile0             { {'4', 'K', '1', '2', '0'}, BaseMetaConfig_Profile0,   TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile0IntelFix     { {'4', 'K', '1', '2', '0'}, BaseMetaConfig_Stripe,     TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1Alternative  { {'1', '6', '5', 'H', 'z'}, BaseMetaConfig_Profile1,   TiledMetaConfig_Profile1, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1Alternativex { {'1', '8', '0', 'H', 'z'}, BaseMetaConfig_Profile1x,  TiledMetaConfig_Profile1x, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile2Rect         { {'R', 'P', '2', '4', '0'}, BaseMetaConfig_Profile2,   TiledMetaConfig_Profile2Rect, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile3Rect         { {'R', 'P', '3', '6', '0'}, BaseMetaConfig_Profile3,   TiledMetaConfig_Profile3Rect, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile4Rect         { {'R', 'P', '4', '8', '0'}, BaseMetaConfig_Profile4,   TiledMetaConfig_Profile4Rect, CEAMetaConfig_Invalid}
 // Configs for a single mode
-#define EDIDMetaConfig_Profile1             { "4k60 ", BaseMetaConfig_Profile0,   TiledMetaConfig_Invalid, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile2             { "240Hz", BaseMetaConfig_Profile2,   TiledMetaConfig_Invalid, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile3             { "360HZ", BaseMetaConfig_Profile3,   TiledMetaConfig_Invalid, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile4             { "480HZ", BaseMetaConfig_Profile4,   TiledMetaConfig_Invalid, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1             { {'4', 'K', '6', '0', ' '}, BaseMetaConfig_Profile1,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile1}
+#define EDIDMetaConfig_Profile2             { {'2', '4', '0', 'H', 'Z'}, BaseMetaConfig_Profile2,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile2}
+#define EDIDMetaConfig_Profile3             { {'3', '6', '0', 'H', 'Z'}, BaseMetaConfig_Profile3,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile3}
+#define EDIDMetaConfig_Profile4             { {'4', '8', '0', 'H', 'Z'}, BaseMetaConfig_Profile4,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile4}
 
-//#define  EDIDMetaConfig_SHIPPING[4]  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4}
-const EDIDMetaConfig EDIDMetaConfig_NEW_SHIPPING[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternative, EDIDMetaConfig_Profile2Rect};
-//#define  EDIDMetaConfig_ONLY_ONE_EDID[4]  {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull}
-//#define  EDIDMetaConfig_RECTANGULAR[4]  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect}
-//#define  EDIDMetaConfig_DP_TEST[4]  {EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2}
+const EDIDMetaConfig EDIDMetaConfig_SHIPPING[4]  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
+const EDIDMetaConfig EDIDMetaConfig_NEXT_SHIPPING[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternative, EDIDMetaConfig_Profile2Rect};
+const EDIDMetaConfig EDIDMetaConfig_ONLY_ONE_EDID[4]  {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull};
+const EDIDMetaConfig EDIDMetaConfig_RECTANGULAR[4]  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect};
+const EDIDMetaConfig EDIDMetaConfig_DP_TEST[4]  {EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2};
 
 struct VideoWallConfig_t {
 uint8_t NumTilesPerDisplay; // Note: assumed horizontal left/right split within each display
@@ -140,7 +145,7 @@ const VideoWallConfig_t VideoWallConfigTriple = {2, 3, 1, 0, 0};
 const VideoWallConfig_t VideoWallConfigQuad   = {2, 2, 2, 0, 0};
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define EDIDMetaConfigs EDIDMetaConfig_NEW_SHIPPING
+#define EDIDMetaConfigs EDIDMetaConfig_SHIPPING
 // Note that if you are using video wall functionality, FIRMWARE_UNIQUE_ID_OVERRIDE must be forced to be the same for all tiles in constants file
 #define VideoWallConfig VideoWallConfigSingle
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
@@ -244,10 +249,10 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
    myEDID.AddDetailedDescriptorName(DetailedDescriptorNameLength, DetailedDescriptorName);
   }
   
-  //if(myEDID.QueryIfAllDescriptorBlocksAreUsed() == false) {
-  // myEDID.AddDetailedDescriptorRangeLimitsOnly(30, 480, 132, 280, 540); // Reasonably safe range
-  // // myEDID.AddDetailedDescriptorRangeLimitsOnly(30, 480, 64, 300, 600); // Extended/unsafe range
-  //}
+  if(myEDID.QueryIfAllDescriptorBlocksAreUsed() == false) {
+   myEDID.AddDetailedDescriptorRangeLimitsOnly(30, 480, 132, 280, 560); // Reasonably safe range
+   // myEDID.AddDetailedDescriptorRangeLimitsOnly(30, 480, 64, 300, 600); // Extended/unsafe range
+  }
   
   // Note: HDMI block is not really needed, no audio and no freesync 
   if(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive != 0) {
@@ -277,3 +282,4 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   }
   myEDID.FixChecksumBaseBlock();
 }
+
