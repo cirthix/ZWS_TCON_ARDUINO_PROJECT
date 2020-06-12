@@ -140,6 +140,7 @@ void setup(){
   Serial.print(F("CFG: ")); panel_print_name(); 
   if ((!DetermineIfFactoryProgrammed())) {   do_factory_configuration();  }  // This is very early because we don't want anything to interfere with factory programming.  It should run standalone.
   
+  SerialDebugln(F("\nSTART"));
   power_down_receivers();
   regular_operation_transmitters();
   power_down_fpga();  
@@ -941,18 +942,23 @@ void write_config_eeproms(){
     update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte);     
   #else
     myEDID.Reset();
+    //power_down_receivers();
+    SerialDebugln("WriteZeroesPrimary");
     update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
+    SerialDebugln("WriteZeroesSeconary");
     update_eeprom(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte); 
     power_up_receivers();  
     delay(millis_disconnect_for_zeroed_edid);
     power_down_receivers();
     
+    SerialDebugln("WritePrimary");
     GenerateEDIDWithParameters(true, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
     update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
 
+    SerialDebugln("WriteSecondary");
     GenerateEDIDWithParameters(false, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);

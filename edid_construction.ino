@@ -101,29 +101,29 @@ ModeLine myModeLine[EDID_DID_MODELINE_SLOTS]; // Note: using the fourth slot (if
 #define TiledMetaConfig_Profile4Rect  { 1, 4, ModeLine_540p480_RectMinimal}
 
 struct EDIDMetaConfig {
-uint8_t NameSuffix[5];
+unsigned char NameSuffix[6];
 BaseMetaConfig myBaseMetaConfig;
 TiledMetaConfig myTiledMetaConfig; // If preferred mode is present, we assume that the two tiles left/right in arrangement.  If not present, the secondary DP interface will disconnect from host.
 CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this CEA block in its place
 };
 
 // Configs with CEA blocks
-#define EDIDMetaConfig_ComboLegacy          { {'c', 'o', 'm', 'b', 'o'}, BaseMetaConfig_LegacyOnly, TiledMetaConfig_Invalid, CEAMetaConfig_FullCombo}
-#define EDIDMetaConfig_Combo                { {'C', 'O', 'M', 'B', 'O'}, BaseMetaConfig_Profile0_n, TiledMetaConfig_Invalid, CEAMetaConfig_FastModes}
+#define EDIDMetaConfig_ComboLegacy          { "combo", BaseMetaConfig_LegacyOnly, TiledMetaConfig_Invalid, CEAMetaConfig_FullCombo}
+#define EDIDMetaConfig_Combo                { "COMBO", BaseMetaConfig_Profile0_n, TiledMetaConfig_Invalid, CEAMetaConfig_FastModes}
 // Configs for tiled modes
-#define EDIDMetaConfig_ComboFull            { {'1', 'M', 'O', 'D', 'E'}, BaseMetaConfig_FullThree,  TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile0             { {'4', 'K', '1', '2', '0'}, BaseMetaConfig_Profile0,   TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile0IntelFix     { {'4', 'K', '1', '2', '0'}, BaseMetaConfig_Stripe,     TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile1Alternative  { {'1', '6', '5', 'H', 'z'}, BaseMetaConfig_Profile1,   TiledMetaConfig_Profile1, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile1Alternativex { {'1', '8', '0', 'H', 'z'}, BaseMetaConfig_Profile1x,  TiledMetaConfig_Profile1x, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile2Rect         { {'R', 'P', '2', '4', '0'}, BaseMetaConfig_Profile2,   TiledMetaConfig_Profile2Rect, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile3Rect         { {'R', 'P', '3', '6', '0'}, BaseMetaConfig_Profile3,   TiledMetaConfig_Profile3Rect, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile4Rect         { {'R', 'P', '4', '8', '0'}, BaseMetaConfig_Profile4,   TiledMetaConfig_Profile4Rect, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_ComboFull            { "1MODE", BaseMetaConfig_FullThree,  TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile0             { "4K120", BaseMetaConfig_Profile0,   TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile0IntelFix     { "4K120", BaseMetaConfig_Stripe,     TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1Alternative  { "165Hz", BaseMetaConfig_Profile1,   TiledMetaConfig_Profile1, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1Alternativex { "180Hz", BaseMetaConfig_Profile1x,  TiledMetaConfig_Profile1x, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile2Rect         { "RP240", BaseMetaConfig_Profile2,   TiledMetaConfig_Profile2Rect, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile3Rect         { "RP360", BaseMetaConfig_Profile3,   TiledMetaConfig_Profile3Rect, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile4Rect         { "RP480", BaseMetaConfig_Profile4,   TiledMetaConfig_Profile4Rect, CEAMetaConfig_Invalid}
 // Configs for a single mode
-#define EDIDMetaConfig_Profile1             { {'4', 'K', '6', '0', ' '}, BaseMetaConfig_Profile1,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile1}
-#define EDIDMetaConfig_Profile2             { {'2', '4', '0', 'H', 'Z'}, BaseMetaConfig_Profile2,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile2}
-#define EDIDMetaConfig_Profile3             { {'3', '6', '0', 'H', 'Z'}, BaseMetaConfig_Profile3,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile3}
-#define EDIDMetaConfig_Profile4             { {'4', '8', '0', 'H', 'Z'}, BaseMetaConfig_Profile4,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile4}
+#define EDIDMetaConfig_Profile1             { "4K60 ", BaseMetaConfig_Profile1,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile1}
+#define EDIDMetaConfig_Profile2             { "240Hz", BaseMetaConfig_Profile2,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile2}
+#define EDIDMetaConfig_Profile3             { "360Hz", BaseMetaConfig_Profile3,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile3}
+#define EDIDMetaConfig_Profile4             { "480Hz", BaseMetaConfig_Profile4,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile4}
 
 const EDIDMetaConfig EDIDMetaConfig_SHIPPING[4]  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
 const EDIDMetaConfig EDIDMetaConfig_NEXT_SHIPPING[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternative, EDIDMetaConfig_Profile2Rect};
