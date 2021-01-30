@@ -286,13 +286,39 @@ void EDID::CEAAddHDMI(){
   uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2);
   Serial.print(F("myByteOffsetHDMI=")); Serial.println(myByteOffset);
   EDID::SetByte(CEABlockOffset+2, EDID::GetByte(CEABlockOffset+2)+0x06);
-  // Add empty HDMI block 
+  // Add empty HDMI block, 340MHz max, no features
   EDID::SetByte(myByteOffset+0, 0x65);
   EDID::SetByte(myByteOffset+1, 0x03);
   EDID::SetByte(myByteOffset+2, 0x0C);
   EDID::SetByte(myByteOffset+3, 0x00);
   EDID::SetByte(myByteOffset+4, 0x10);
   EDID::SetByte(myByteOffset+5, 0x00);
+}
+
+void EDID::CEAAddHDMITwoPointZero(){
+  uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2);
+  Serial.print(F("myByteOffsetHDMI2=")); Serial.println(myByteOffset);
+  EDID::SetByte(CEABlockOffset+2, EDID::GetByte(CEABlockOffset+2)+0x08);
+  // 600MHz max, no features
+  EDID::SetByte(myByteOffset+0, 0x67);
+  EDID::SetByte(myByteOffset+1, 0xD8);
+  EDID::SetByte(myByteOffset+2, 0x5D);
+  EDID::SetByte(myByteOffset+3, 0xC4);
+  EDID::SetByte(myByteOffset+4, 0x01);
+  EDID::SetByte(myByteOffset+5, 0x78);
+  EDID::SetByte(myByteOffset+6, 0x00);
+  EDID::SetByte(myByteOffset+7, 0x00);
+}
+
+void EDID::CEAAddSupportedStandardModes(){
+  uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2);
+  Serial.print(F("myByteOffsetHDMI2=")); Serial.println(myByteOffset);
+  EDID::SetByte(CEABlockOffset+2, EDID::GetByte(CEABlockOffset+2)+0x04);
+  // Add 1080p60, 1080p120, 4K60 as "standard" modes for PS5 compatibility
+  EDID::SetByte(myByteOffset+0, 0x43);
+  EDID::SetByte(myByteOffset+1, 0x10);
+  EDID::SetByte(myByteOffset+2, 0x3F);
+  EDID::SetByte(myByteOffset+3, 0x61);
 }
 
 void EDID::CEAAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){

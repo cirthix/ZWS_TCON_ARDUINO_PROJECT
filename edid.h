@@ -53,6 +53,8 @@ public:
   void FixChecksumExtensionBlock();
   void CEACreateBlock();
   void CEAAddHDMI();
+  void CEAAddHDMITwoPointZero();
+  void CEAAddSupportedStandardModes();
   void CEAAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters);
   void DiDCreateBlock();
   void DiDAddTiledDescriptor(uint8_t ManufacturerID[3], uint16_t ProductID, uint32_t SerialNumber, uint8_t HTiles, uint8_t VTiles, uint8_t HTileLocation, uint8_t VTileLocation, uint16_t HTileSize, uint16_t VTileSize);

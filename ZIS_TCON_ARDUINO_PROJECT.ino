@@ -636,6 +636,7 @@ void do_factory_configuration() {
   UserConfiguration_SaveDefaultCrosshair();
   write_config_eeproms(); 
   UserConfiguration_SaveDefaultMagicByte();
+  SerialDebugln(F("FinishedFac"));  
   softReset();
 }
 
