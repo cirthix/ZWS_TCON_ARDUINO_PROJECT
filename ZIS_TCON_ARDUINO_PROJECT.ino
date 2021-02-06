@@ -1001,7 +1001,7 @@ uint16_t update_eeprom(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp
 }
 
 
-const uint8_t EEPROM_WRITE_TIME = 9+1;   // Time between i2c eeprom writes, needed for 24c02/24c08 to complete internal operations.  6ms works fine.  Slower to give status led more time to blink
+const uint8_t EEPROM_WRITE_TIME = 5+1;   // Time between i2c eeprom writes, needed for 24c02/24c08 to complete internal operations.  6ms works fine.  Slower to give status led more time to blink
 const uint8_t BlinkDividerMax = 8; // Make flashing of status LED more visible
 uint8_t update_eeprom_page_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp_virtualeeprom)(uint8_t address )){
     wdt_reset();  
