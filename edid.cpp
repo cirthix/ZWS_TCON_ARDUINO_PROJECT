@@ -184,7 +184,10 @@ void EDID::SetNoGenericVideoModes(){
 
 
 void EDID::AddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
-  if(myModeLine.HActive==0) { Serial.print(F("SkippingDTD")); return; }
+  if(myModeLine.HActive==0) {
+   // Serial.print(F("SkippingDTD"));
+    return;
+  }
   EDID::AddDetailedDescriptorTiming18BytesToOffset(EDID::GetDetailedDescriptorBlockOffset(), myModeLine, HSizeInMilliMeters, VSizeInMilliMeters);
   EDID::IncrementNumberOfFilledDescriptorBlocks();
 }

@@ -37,6 +37,14 @@ SendOnlySoftwareSerial SerialToBldriver(BLPIN_PWM);
 
 InputHandling Inputs;
 EDID myEDID = EDID(); 
+
+#if BOARD_VERSION==BOARD_IS_EP369_REV2017    
+  EDID myEDID = EDID(); 
+#else
+  EDID myEDID_PRI = EDID(); 
+  EDID myEDID_SEC = EDID(); 
+#endif
+
 SoftIIC my_SoftIIC_EDID_PRI=SoftIIC(SCL_PIN_PRI, SDA_PIN_PRI, IIC_SPEED, true, false, true);
 SoftIIC my_SoftIIC_EDID_SEC=SoftIIC(SCL_PIN_SEC, SDA_PIN_SEC, IIC_SPEED, true, false, true);
 
@@ -135,7 +143,7 @@ void setup(){
   
   Serial.begin(SERIAL_BAUD);
   
-  Serial.println(F("" __DATE__ " " __TIME__ "\n"));  
+  Serial.println(F("\n" __DATE__ " " __TIME__ ""));  
   Serial.print(F("PCB: ")); board_print_name(); 
   Serial.print(F("CFG: ")); panel_print_name(); 
 
@@ -908,16 +916,26 @@ uint8_t ConfigGenerateEPMI(){
 return retval;
 }
 
-uint8_t GetByte(uint8_t address){
-  return myEDID.GetByte(address);
-}
-
 void CheckEPMIConfig(){
   SerialDebug("EPMI_ADDR_SPECIAL="); fastprinthexbyte(ZWSMOD_EP369S_ADDRESS_SPECIAL);
   SerialDebug("ZWSMOD_EP369S_VALUE_SPECIAL="); fastprinthexbyte(ZWSMOD_EP369S_VALUE_SPECIAL);
   SerialDebug("ZWSMOD_EP369S_ADDRESS_CONFIGURATION="); fastprinthexbyte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION);
   SerialDebug("ZWSMOD_EP369S_VALUE_CONFIGURATION="); fastprinthexbyte(ConfigGenerateEPMI());
 }
+
+  #if BOARD_VERSION==BOARD_IS_EP369_REV2017    
+uint8_t GetByte(uint8_t address){
+  return myEDID.GetByte(address);
+}
+#else
+  
+uint8_t GetBytePRI(uint8_t address){
+  return myEDID_PRI.GetByte(address);
+}  
+uint8_t GetByteSEC(uint8_t address){
+  return myEDID_SEC.GetByte(address);
+}
+#endif
 
 void write_config_eeproms(){  
   #if DEBUG_OPTION_SKIP_EDID_PROGRAMMING == true
@@ -939,7 +957,7 @@ void write_config_eeproms(){
     power_up_receivers();  
     delay(millis_disconnect_for_zeroed_edid);
     power_down_receivers();
-    GenerateEDIDWithParameters(not I_AM_A_SECONDARY, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
+    GenerateEDIDWithParameters(not I_AM_A_SECONDARY, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber, &myEDID);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
@@ -950,36 +968,35 @@ void write_config_eeproms(){
       if(failureCount > 0) { Serial.println(F("\nEEPROM verify failed!"));}
     }
   #else
-    myEDID.Reset();
-    //power_down_receivers();
-    SerialDebugln("WriteZeroesPrimary");
-    update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
-    SerialDebugln("WriteZeroesSeconary");
-    update_eeprom(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte); 
+
+  
+    power_down_receivers();
+    myEDID_PRI.Reset();
+    myEDID_SEC.Reset();
+    update_both_eeproms_byte_mode_write_only_differences(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetBytePRI, &my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByteSEC);
     power_up_receivers();  
     delay(millis_disconnect_for_zeroed_edid);
-    power_down_receivers();
+    power_down_receivers();    
+    GenerateEDIDWithParameters(true, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber, &myEDID_PRI);
+    GenerateEDIDWithParameters(false, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber, &myEDID_SEC);
+    SerialDebug("\nPrimaryEDID=");
+    #if (SERIAL_DEBUGGING_OUTPUT == ENABLED)
+      myEDID_PRI.PrintEDID();  
+    #endif 
+    SerialDebug("\nSecondaryEDID=");
+    #if (SERIAL_DEBUGGING_OUTPUT == ENABLED)
+      myEDID_SEC.PrintEDID();   
+    #endif
+    myEDID_PRI.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
+    myEDID_PRI.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
+    myEDID_SEC.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
+    myEDID_SEC.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
     
-    SerialDebugln("WritePrimary");
-    GenerateEDIDWithParameters(true, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
-    myEDID.PrintEDID();   
-    myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
-    myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
-    failureCount=update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
-    if(failureCount > 0) { Serial.println(F("\nPRI EEPROM update failed!"));}
+    failureCount = update_both_eeproms_byte_mode_write_only_differences(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetBytePRI, &my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByteSEC);
     if((failureCount == 0) && (doVerification==true)){
-      failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte);     
-      if(failureCount > 0) { Serial.println(F("\nPRI EEPROM verify failed!"));}
-    }
-    SerialDebugln("WriteSecondary");
-    GenerateEDIDWithParameters(false, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
-    myEDID.PrintEDID();   
-    myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
-    myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI()); 
-    failureCount=update_eeprom(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte); 
-    if(failureCount > 0) { Serial.println(F("\nSEC EEPROM update failed!"));}
-    if((failureCount == 0) && (doVerification==true)){
-      failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte);     
+      failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetBytePRI);     
+      if(failureCount > 0) { Serial.println(F("\nPRI EEPROM verify failed!"));}  
+      failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByteSEC);     
       if(failureCount > 0) { Serial.println(F("\nSEC EEPROM verify failed!"));}
     }
   #endif
@@ -1090,6 +1107,71 @@ uint16_t update_eeprom_byte_mode_write_only_differences(SoftIIC* my_SoftIIC, uin
         SerialDebug(" IIC writes done, "); SerialDebugD(failures); SerialDebugln(" errors.");
     }
     return failures;
+}
+
+
+uint16_t update_both_eeproms_byte_mode_write_only_differences(SoftIIC* my_SoftIIC_PRI, uint8_t eeprom_address_PRI, uint8_t (*fp_virtualeeprom_PRI)(uint8_t address ), SoftIIC* my_SoftIIC_SEC, uint8_t eeprom_address_SEC, uint8_t (*fp_virtualeeprom_SEC)(uint8_t address )){
+    wdt_reset();
+    SerialDebug("ByteProgBoth"); SerialDebug("\t"); /*SerialFlush();Disabled*/
+    uint8_t tretval_PRI=0xff;
+    uint8_t tretval_SEC=0xff;
+    uint16_t failures_PRI = 1;
+    uint16_t failures_SEC = 1;
+    uint16_t current_address = 0;
+    uint8_t BlinkDivider = BlinkDividerMax;
+    uint8_t retries_remaining = 3;
+    boolean wrotePRI = false;
+    boolean wroteSEC = false;
+    while ((failures_PRI + failures_SEC > 0) && (retries_remaining>0) ) {
+        failures_PRI = 0;
+        failures_SEC = 0;
+        retries_remaining = retries_remaining -1;   
+        wrotePRI=false;     
+        wroteSEC=false;     
+        for (current_address = 0; current_address <= 0xff; current_address++ ) {
+            /*SerialFlush();Disabled*/
+            tretval_PRI=my_SoftIIC_PRI->MasterReadByte( eeprom_address_PRI,  current_address );
+            if(tretval_PRI!=fp_virtualeeprom_PRI(current_address)){
+              tretval_PRI=my_SoftIIC_PRI->MasterWriteByte( eeprom_address_PRI,  current_address,  fp_virtualeeprom_PRI(current_address), 1 );
+              wrotePRI=true;
+              if(tretval_PRI != 0){ failures_PRI++;}
+            }
+            tretval_SEC=my_SoftIIC_SEC->MasterReadByte( eeprom_address_SEC,  current_address );
+            if(tretval_SEC!=fp_virtualeeprom_SEC(current_address)){
+              tretval_SEC=my_SoftIIC_SEC->MasterWriteByte( eeprom_address_SEC,  current_address,  fp_virtualeeprom_SEC(current_address), 1 );
+              wroteSEC=true;        
+              if(tretval_SEC != 0){ failures_SEC++;}
+            }
+
+            // Decoder:
+            // _ Wrote nothing
+            // . Wrote PRI, no error
+            // , Wrote SEC, no error
+            // ~ Wrote both, no error
+            // / Error writing PRI
+            // \ Error writing SEC
+            // # Error writing both
+
+            uint8_t statusCharacter = '?';
+            if((wrotePRI==false) && (wroteSEC==false)) {statusCharacter='_';}
+            if((wrotePRI==true) && (tretval_PRI == 0) && (wroteSEC==false)) {statusCharacter='.';}
+            if((wrotePRI==false)&& (wroteSEC==true) && (tretval_SEC == 0)) {statusCharacter=',';}
+            if((wrotePRI==true) && (tretval_PRI == 0) && (wroteSEC==true) && (tretval_SEC == 0)) {statusCharacter='~';}            
+            if((wrotePRI==true) && (tretval_PRI != 0)) {statusCharacter='/';}
+            if((wroteSEC==true) && (tretval_SEC != 0)) {statusCharacter='\\';}
+            if((wrotePRI==true) && (tretval_PRI != 0) && (wroteSEC==true) && (tretval_SEC != 0)) {statusCharacter='#';}            
+            SerialDebug(statusCharacter);
+            if((wrotePRI==true) || (wroteSEC==true)){ delay(EEPROM_WRITE_TIME);}
+            if(BlinkDivider==0){
+              BlinkDivider = BlinkDividerMax;
+              BlinkStateLED();
+            } else { 
+              BlinkDivider = BlinkDivider -1;
+            }
+        }
+        SerialDebug(" IIC writes done, "); SerialDebugD(failures); SerialDebugln(" errors.");
+    }
+    return failures_PRI + failures_SEC;
 }
 
 

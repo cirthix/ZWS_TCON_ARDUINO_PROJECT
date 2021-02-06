@@ -153,11 +153,11 @@ const PROGMEM EDIDMetaConfig EDIDMetaConfigs[4] = EDIDMetaConfig_SHIPPING;
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 
 
-void SetU28H750EDID(){
+void SetU28H750EDID(EDID* myEDIDObject){
   const uint8_t StockSamsungEDID[] = {0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x4C, 0x2D, 0x4D, 0x0C, 0x4A, 0x53, 0x4D, 0x30, 0x10, 0x1C, 0x01, 0x04, 0xB5, 0x3D, 0x23, 0x78, 0x3B, 0x5F, 0xB1, 0xA2, 0x57, 0x4F, 0xA2, 0x28, 0x0F, 0x50, 0x54, 0x23, 0x08, 0x00, 0x81, 0x00, 0x81, 0xC0, 0x81, 0x80, 0xA9, 0xC0, 0xB3, 0x00, 0x95, 0x00, 0x01, 0x01, 0x01, 0x01, 0x4D, 0xD0, 0x00, 0xA0, 0xF0, 0x70, 0x3E, 0x80, 0x30, 0x20, 0x35, 0x00, 0x5F, 0x59, 0x21, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0xFD, 0x00, 0x28, 0x3C, 0x87, 0x87, 0x3C, 0x01, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x55, 0x32, 0x38, 0x45, 0x35, 0x39, 0x30, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x48, 0x54, 0x50, 0x4B, 0x34, 0x30, 0x39, 0x36, 0x38, 0x34, 0x0A, 0x20, 0x20, 0x01, 0xD8, 0x02, 0x03, 0x0E, 0xF0, 0x41, 0x10, 0x23, 0x09, 0x07, 0x07, 0x83, 0x01, 0x00, 0x00, 0x02, 0x3A, 0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C, 0x45, 0x00, 0x5F, 0x59, 0x21, 0x00, 0x00, 0x1E, 0x56, 0x5E, 0x00, 0xA0, 0xA0, 0xA0, 0x29, 0x50, 0x30, 0x20, 0x35, 0x00, 0x5F, 0x59, 0x21, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xBF};
-  myEDID.Reset();
+  myEDIDObject->Reset();
   for(uint16_t index=0; index<=0xFF; index++){
-    myEDID.SetByte(index, StockSamsungEDID[index]);     
+    myEDIDObject->SetByte(index, StockSamsungEDID[index]);     
   } 
 }
 
@@ -184,16 +184,16 @@ void PrintEDIDMetaConfig(struct EDIDMetaConfig myEDIDMetaConfig){ // This exists
   Serial.write(myEDIDMetaConfig.NameSuffix[5]);
 }
 
-void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t PanelID, uint8_t EDIDMetaConfigID, uint32_t SerialNumber){
-//  SetU28H750EDID(); return;  // Sometimes, it is useful to try with a known-good EDID
+void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t PanelID, uint8_t EDIDMetaConfigID, uint32_t SerialNumber, EDID* myEDIDObject){
+//  SetU28H750EDID(myEDIDObject); return;  // Sometimes, it is useful to try with a known-good EDID
   EDIDMetaConfig myEDIDMetaConfig;
   memcpy_P( &myEDIDMetaConfig, &EDIDMetaConfigs[EDIDMetaConfigID], sizeof(EDIDMetaConfig));
   //PrintEDIDMetaConfig(myEDIDMetaConfig);
   ImageDimensions_t myImageDimensions;
-  myEDID.Reset();
+  myEDIDObject->Reset();
   if(AmPrimary == false && (myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive == 0)) {
     if(AmCloned == true) {
-      return GenerateEDIDWithParameters(true, AmCloned, PanelID, EDIDMetaConfigID, SerialNumber);
+      return GenerateEDIDWithParameters(true, AmCloned, PanelID, EDIDMetaConfigID, SerialNumber, myEDIDObject);
     } else {
       return;
     }
@@ -228,20 +228,20 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   DetailedDescriptorName[10] = myEDIDMetaConfig.NameSuffix[2];
   DetailedDescriptorName[11] = myEDIDMetaConfig.NameSuffix[3];
   DetailedDescriptorName[12] = myEDIDMetaConfig.NameSuffix[4];  
-  myEDID.SetHeader();
-  myEDID.SetManufacturerID(ManufacturerID);
-  myEDID.SetManufacturerProductCode(BasePID + EDIDMetaConfigID);
-  myEDID.SetManufacturerSerialNumber(SerialNumber);
-  myEDID.SetManufactureWeek(1);
-  myEDID.SetManufactureYear(2020);
-  myEDID.SetDisplayPort10Bit();
-  myEDID.SetPhysicalWidthInCentimeters(round(myImageDimensions.ImageWidthInMillimeters/10));
-  myEDID.SetPhysicalHeightInCentimeters(round(myImageDimensions.ImageHeightInMillimeters/10));
-  myEDID.SetReportedGammaValueTimes100(2.2 * 100);
-  myEDID.SetRGB444WithNoDPMSWithNativeTimingsAndNoContinuiousFrequency();
-  myEDID.SetReportedChromaticites(PanelInfoArray[PanelID].Chromaticity);
-  myEDID.SetNoLegacyStandardVideoModes();
-  myEDID.SetNoGenericVideoModes();
+  myEDIDObject->SetHeader();
+  myEDIDObject->SetManufacturerID(ManufacturerID);
+  myEDIDObject->SetManufacturerProductCode(BasePID + EDIDMetaConfigID);
+  myEDIDObject->SetManufacturerSerialNumber(SerialNumber);
+  myEDIDObject->SetManufactureWeek(1);
+  myEDIDObject->SetManufactureYear(2020);
+  myEDIDObject->SetDisplayPort10Bit();
+  myEDIDObject->SetPhysicalWidthInCentimeters(round(myImageDimensions.ImageWidthInMillimeters/10));
+  myEDIDObject->SetPhysicalHeightInCentimeters(round(myImageDimensions.ImageHeightInMillimeters/10));
+  myEDIDObject->SetReportedGammaValueTimes100(2.2 * 100);
+  myEDIDObject->SetRGB444WithNoDPMSWithNativeTimingsAndNoContinuiousFrequency();
+  myEDIDObject->SetReportedChromaticites(PanelInfoArray[PanelID].Chromaticity);
+  myEDIDObject->SetNoLegacyStandardVideoModes();
+  myEDIDObject->SetNoGenericVideoModes();
 
   boolean SkipDTDs = false;
   //if( ((myEDIDMetaConfig.myTiledMetaConfig.TiledPreferredMode.HActive != 0) && (AmPrimary == false))) { SkipDTDs = true; } // Experimental fix for intel graphics : remove preferred timing mode on secondary output base block
@@ -251,52 +251,52 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
 //    if((myEDIDMetaConfig.myTiledMetaConfig.TiledPreferredMode.HActive == 0) && (TRY_TO_ADD_CEA_EXTENSION_BLOCK == true)){ SlotsToPutIntoBaseBlock = 1; } 
     for(uint8_t j=0; j<SlotsToPutIntoBaseBlock; j++){
       myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    myEDIDMetaConfig.myBaseMetaConfig.PixelScalingH[j],    myEDIDMetaConfig.myBaseMetaConfig.PixelScalingV[j],        myEDIDMetaConfig.myBaseMetaConfig.myModeLine[j].HActive,    myEDIDMetaConfig.myBaseMetaConfig.myModeLine[j].VActive );
-      myEDID.AddDetailedDescriptorTiming(myEDIDMetaConfig.myBaseMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
+      myEDIDObject->AddDetailedDescriptorTiming(myEDIDMetaConfig.myBaseMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
     }
   } else {
-    myEDID.SetRGB444WithNoDPMSWithNoNativeTimingsAndNoContinuiousFrequency();
+    myEDIDObject->SetRGB444WithNoDPMSWithNoNativeTimingsAndNoContinuiousFrequency();
   }
   
 
-  if(myEDID.QueryIfAllDescriptorBlocksAreUsed() == false) {
-   myEDID.AddDetailedDescriptorName(DetailedDescriptorNameLength, DetailedDescriptorName);
+  if(myEDIDObject->QueryIfAllDescriptorBlocksAreUsed() == false) {
+   myEDIDObject->AddDetailedDescriptorName(DetailedDescriptorNameLength, DetailedDescriptorName);
   }
   
-  if(myEDID.QueryIfAllDescriptorBlocksAreUsed() == false) {
-   myEDID.AddDetailedDescriptorRangeLimitsOnly(30, 480, 132, 280, 560); // Reasonably safe range
-   // myEDID.AddDetailedDescriptorRangeLimitsOnly(30, 480, 64, 300, 600); // Extended/unsafe range
+  if(myEDIDObject->QueryIfAllDescriptorBlocksAreUsed() == false) {
+   myEDIDObject->AddDetailedDescriptorRangeLimitsOnly(30, 480, 132, 280, 560); // Reasonably safe range
+   // myEDIDObject->AddDetailedDescriptorRangeLimitsOnly(30, 480, 64, 300, 600); // Extended/unsafe range
   }
   
   // Note: HDMI block is not really needed, no audio and no freesync 
   if(myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive != 0) {
   // Add a DiD block
-      myEDID.DiDCreateBlock(); 
+      myEDIDObject->DiDCreateBlock(); 
       uint8_t myPositionH=VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.MyPositionH;
       if(AmPrimary == false){myPositionH = myPositionH+1;}
-      myEDID.DiDAddTiledDescriptor(ManufacturerID, BasePID + EDIDMetaConfigID, SerialNumber, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.NumDisplaysH, VideoWallConfig.NumDisplaysV, myPositionH, VideoWallConfig.MyPositionV, myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive, myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].VActive);
+      myEDIDObject->DiDAddTiledDescriptor(ManufacturerID, BasePID + EDIDMetaConfigID, SerialNumber, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.NumDisplaysH, VideoWallConfig.NumDisplaysV, myPositionH, VideoWallConfig.MyPositionV, myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive, myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].VActive);
 
       for(uint8_t j=0; j<EDID_DID_MODELINE_SLOTS; j++){
         myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    myEDIDMetaConfig.myTiledMetaConfig.PixelScalingH,    myEDIDMetaConfig.myTiledMetaConfig.PixelScalingV,        myEDIDMetaConfig.myTiledMetaConfig.myModeLine[j].HActive,    myEDIDMetaConfig.myTiledMetaConfig.myModeLine[j].VActive );
-        myEDID.DiDAddDetailedDescriptorTiming(myEDIDMetaConfig.myTiledMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
+        myEDIDObject->DiDAddDetailedDescriptorTiming(myEDIDMetaConfig.myTiledMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
       }
-      myEDID.DiDSetChecksum(); 
-      myEDID.FixChecksumExtensionBlock();
+      myEDIDObject->DiDSetChecksum(); 
+      myEDIDObject->FixChecksumExtensionBlock();
   } else {
   if(myEDIDMetaConfig.myCEAMetaConfig.myModeLine[0].HActive != 0) {
     // Add a CEA block
-      myEDID.CEACreateBlock(); 
-      myEDID.CEAAddHDMI();
-      myEDID.CEAAddHDMITwoPointOne();
+      myEDIDObject->CEACreateBlock(); 
+      myEDIDObject->CEAAddHDMI();
+      myEDIDObject->CEAAddHDMITwoPointOne();
       if (myEDIDMetaConfig.myCEAMetaConfig.AddStandardModes == true){
-        myEDID.CEAAddSupportedStandardModes();
+        myEDIDObject->CEAAddSupportedStandardModes();
       }
       for(uint8_t j=0; j<EDID_CEA_MODELINE_SLOTS; j++){
         myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    myEDIDMetaConfig.myCEAMetaConfig.PixelScalingH[j],    myEDIDMetaConfig.myCEAMetaConfig.PixelScalingV[j],        myEDIDMetaConfig.myCEAMetaConfig.myModeLine[j].HActive,    myEDIDMetaConfig.myCEAMetaConfig.myModeLine[j].VActive );
-        myEDID.CEAAddDetailedDescriptorTiming(myEDIDMetaConfig.myCEAMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
+        myEDIDObject->CEAAddDetailedDescriptorTiming(myEDIDMetaConfig.myCEAMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
       }
-      myEDID.FixChecksumExtensionBlock();
+      myEDIDObject->FixChecksumExtensionBlock();
   }
   }
-  myEDID.FixChecksumBaseBlock();
+  myEDIDObject->FixChecksumBaseBlock();
 }
 
