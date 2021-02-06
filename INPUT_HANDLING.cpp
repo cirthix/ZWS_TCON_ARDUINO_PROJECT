@@ -133,20 +133,20 @@ void InputHandling::RefilterInputState()    {
 
 
 void InputHandling::PrintState()    {
-SerialDebug(F("Filter state:"));
-  if(filter_is_dirty==0){SerialDebug(F("DIRTY"));} else {SerialDebug(F("CLEAN"));}
-  SerialDebug(F(" ["));
+SerialDebug("Filter state:");
+  if(filter_is_dirty==0){SerialDebug("DIRTY");} else {SerialDebug("CLEAN");}
+  SerialDebug(" [");
   uint8_t myindex = 0;
   while (myindex < FILTERDEPTH_INPUT) {
-      SerialDebug(input_history[myindex]);
-      if(myindex < FILTERDEPTH_INPUT-1) {      SerialDebug(F(", ")); }
+      SerialDebugD(input_history[myindex]);
+      if(myindex < FILTERDEPTH_INPUT-1) {      SerialDebug(", "); }
       myindex++;
     } 
-  SerialDebug(F("] ("));
-  SerialDebug(input_index);
-  SerialDebug(F(") Filtered: "));
-  SerialDebug( InputHandling::GetCurrentFilteredInput());
+  SerialDebug("] (");
+  SerialDebugD(input_index);
+  SerialDebug(") Filtered: ");
+  SerialDebugD( InputHandling::GetCurrentFilteredInput());
   
-  SerialDebugln(F(""));  
+  SerialDebugln("");  
 }
 

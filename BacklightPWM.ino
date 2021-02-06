@@ -28,7 +28,7 @@ uint8_t DetermineCorrectTimer2Divider(uint16_t myTargetDivision){
 
 void BacklightDisable(){  
   if(CONNECTED_BACKLIGHT != CONNECTED_BACKLIGHT_IS_GENERIC) {return;}
-  SerialDebugln(F("BL-"));
+  SerialDebugln("BL-");
   pinMode(BLPIN_BLON, OUTPUT); digitalWrite(BLPIN_BLON, not BacklightInfo.BACKLIGHT_ENABLE_POLARITY);
   pinMode(BLPIN_PWM, OUTPUT); digitalWrite(BLPIN_PWM, not BacklightInfo.BACKLIGHT_PWM_POLARITY);
   BacklightIsOn = false;
@@ -36,7 +36,7 @@ void BacklightDisable(){
 
 void BacklightEnable(){
   if(CONNECTED_BACKLIGHT != CONNECTED_BACKLIGHT_IS_GENERIC) {return;}
-  SerialDebugln(F("BL+"));
+  SerialDebugln("BL+");
   BacklightIsOn = true;
   pinMode(BLPIN_BLON, OUTPUT); digitalWrite(BLPIN_BLON, BacklightInfo.BACKLIGHT_ENABLE_POLARITY);
   BacklightSetBrightness();

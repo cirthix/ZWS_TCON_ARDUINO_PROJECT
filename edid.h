@@ -53,7 +53,7 @@ public:
   void FixChecksumExtensionBlock();
   void CEACreateBlock();
   void CEAAddHDMI();
-  void CEAAddHDMITwoPointZero();
+  void CEAAddHDMITwoPointOne();
   void CEAAddSupportedStandardModes();
   void CEAAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters);
   void DiDCreateBlock();

@@ -117,7 +117,7 @@ CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this C
 #define EDIDMetaConfig_Profile0             { "4K120", BaseMetaConfig_Profile0,   TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile0IntelFix     { "4K120", BaseMetaConfig_Stripe,     TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile1Alternative  { "165Hz", BaseMetaConfig_Profile1,   TiledMetaConfig_Profile1, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile1Alternativex { "180Hz", BaseMetaConfig_Profile1x,  TiledMetaConfig_Profile1x, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1Alternativex { "180Hz", BaseMetaConfig_Profile1_x,  TiledMetaConfig_Profile1_x, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile2Rect         { "RP240", BaseMetaConfig_Profile2,   TiledMetaConfig_Profile2Rect, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile3Rect         { "RP360", BaseMetaConfig_Profile3,   TiledMetaConfig_Profile3Rect, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile4Rect         { "RP480", BaseMetaConfig_Profile4,   TiledMetaConfig_Profile4Rect, CEAMetaConfig_Invalid}
@@ -127,11 +127,11 @@ CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this C
 #define EDIDMetaConfig_Profile3             { "360Hz", BaseMetaConfig_Profile3,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile3}
 #define EDIDMetaConfig_Profile4             { "480Hz", BaseMetaConfig_Profile4,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile4}
 
-const EDIDMetaConfig EDIDMetaConfig_SHIPPING[4]  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4};
-const EDIDMetaConfig EDIDMetaConfig_NEXT_SHIPPING[4] = {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternative, EDIDMetaConfig_Profile2Rect};
-const EDIDMetaConfig EDIDMetaConfig_ONLY_ONE_EDID[4]  {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull};
-const EDIDMetaConfig EDIDMetaConfig_RECTANGULAR[4]  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect};
-const EDIDMetaConfig EDIDMetaConfig_DP_TEST[4]  {EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2};
+#define EDIDMetaConfig_SHIPPING  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4}
+#define EDIDMetaConfig_NEXT_SHIPPING  {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternative, EDIDMetaConfig_Profile2Rect}
+#define EDIDMetaConfig_ONLY_ONE_EDID {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull}
+#define EDIDMetaConfig_RECTANGULAR  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect}
+#define EDIDMetaConfig_DP_TEST {EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2}
 
 struct VideoWallConfig_t {
 uint8_t NumTilesPerDisplay; // Note: assumed horizontal left/right split within each display
@@ -147,7 +147,7 @@ const VideoWallConfig_t VideoWallConfigTriple = {2, 3, 1, 0, 0};
 const VideoWallConfig_t VideoWallConfigQuad   = {2, 2, 2, 0, 0};
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define EDIDMetaConfigs EDIDMetaConfig_SHIPPING
+const PROGMEM EDIDMetaConfig EDIDMetaConfigs[4] = EDIDMetaConfig_SHIPPING;
 // Note that if you are using video wall functionality, FIRMWARE_UNIQUE_ID_OVERRIDE must be forced to be the same for all tiles in constants file
 #define VideoWallConfig VideoWallConfigSingle
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
@@ -174,13 +174,24 @@ struct ImageDimensions_t ImageSizeCalculator(float PanelDPI, uint8_t PixelScalin
   return myImageDimensions;  
 }
 
+void PrintEDIDMetaConfig(struct EDIDMetaConfig myEDIDMetaConfig){ // This exists to sanity-check progmem access
+  Serial.print(F("NameSuffix=")); 
+  Serial.write(myEDIDMetaConfig.NameSuffix[0]);
+  Serial.write(myEDIDMetaConfig.NameSuffix[1]);
+  Serial.write(myEDIDMetaConfig.NameSuffix[2]);
+  Serial.write(myEDIDMetaConfig.NameSuffix[3]);
+  Serial.write(myEDIDMetaConfig.NameSuffix[4]);
+  Serial.write(myEDIDMetaConfig.NameSuffix[5]);
+}
 
 void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t PanelID, uint8_t EDIDMetaConfigID, uint32_t SerialNumber){
-  
 //  SetU28H750EDID(); return;  // Sometimes, it is useful to try with a known-good EDID
+  EDIDMetaConfig myEDIDMetaConfig;
+  memcpy_P( &myEDIDMetaConfig, &EDIDMetaConfigs[EDIDMetaConfigID], sizeof(EDIDMetaConfig));
+  //PrintEDIDMetaConfig(myEDIDMetaConfig);
   ImageDimensions_t myImageDimensions;
   myEDID.Reset();
-  if(AmPrimary == false && (EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive == 0)) {
+  if(AmPrimary == false && (myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive == 0)) {
     if(AmCloned == true) {
       return GenerateEDIDWithParameters(true, AmCloned, PanelID, EDIDMetaConfigID, SerialNumber);
     } else {
@@ -189,10 +200,10 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   }
   uint16_t BasePID = 20180;
 
-  if(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive == 0) {
-  myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingH[0],    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingV[0],        EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[0].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[0].VActive );
+  if(myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive == 0) {
+  myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    myEDIDMetaConfig.myBaseMetaConfig.PixelScalingH[0],    myEDIDMetaConfig.myBaseMetaConfig.PixelScalingV[0],        myEDIDMetaConfig.myBaseMetaConfig.myModeLine[0].HActive,    myEDIDMetaConfig.myBaseMetaConfig.myModeLine[0].VActive );
   } else {
-  myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingH,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingV,        EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive*2,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].VActive );    
+  myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    myEDIDMetaConfig.myTiledMetaConfig.PixelScalingH,    myEDIDMetaConfig.myTiledMetaConfig.PixelScalingV,        myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive*2,    myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].VActive );    
   }
 
   
@@ -212,11 +223,11 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   DetailedDescriptorName[5] = '0'+DiagonalInInchesOnes;
   DetailedDescriptorName[6] = '\"';
   DetailedDescriptorName[7] = ' ';
-  DetailedDescriptorName[8] = EDIDMetaConfigs[EDIDMetaConfigID].NameSuffix[0];
-  DetailedDescriptorName[9] = EDIDMetaConfigs[EDIDMetaConfigID].NameSuffix[1];
-  DetailedDescriptorName[10] = EDIDMetaConfigs[EDIDMetaConfigID].NameSuffix[2];
-  DetailedDescriptorName[11] = EDIDMetaConfigs[EDIDMetaConfigID].NameSuffix[3];
-  DetailedDescriptorName[12] = EDIDMetaConfigs[EDIDMetaConfigID].NameSuffix[4];  
+  DetailedDescriptorName[8] = myEDIDMetaConfig.NameSuffix[0];
+  DetailedDescriptorName[9] = myEDIDMetaConfig.NameSuffix[1];
+  DetailedDescriptorName[10] = myEDIDMetaConfig.NameSuffix[2];
+  DetailedDescriptorName[11] = myEDIDMetaConfig.NameSuffix[3];
+  DetailedDescriptorName[12] = myEDIDMetaConfig.NameSuffix[4];  
   myEDID.SetHeader();
   myEDID.SetManufacturerID(ManufacturerID);
   myEDID.SetManufacturerProductCode(BasePID + EDIDMetaConfigID);
@@ -233,14 +244,14 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   myEDID.SetNoGenericVideoModes();
 
   boolean SkipDTDs = false;
-  //if( ((EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive != 0) && (AmPrimary == false))) { SkipDTDs = true; } // Experimental fix for intel graphics : remove preferred timing mode on secondary output base block
+  //if( ((myEDIDMetaConfig.myTiledMetaConfig.TiledPreferredMode.HActive != 0) && (AmPrimary == false))) { SkipDTDs = true; } // Experimental fix for intel graphics : remove preferred timing mode on secondary output base block
 
   if(SkipDTDs == false) {
     uint8_t SlotsToPutIntoBaseBlock = EDID_BASE_MODELINE_SLOTS;
-//    if((EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.TiledPreferredMode.HActive == 0) && (TRY_TO_ADD_CEA_EXTENSION_BLOCK == true)){ SlotsToPutIntoBaseBlock = 1; } 
+//    if((myEDIDMetaConfig.myTiledMetaConfig.TiledPreferredMode.HActive == 0) && (TRY_TO_ADD_CEA_EXTENSION_BLOCK == true)){ SlotsToPutIntoBaseBlock = 1; } 
     for(uint8_t j=0; j<SlotsToPutIntoBaseBlock; j++){
-      myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingH[j],    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.PixelScalingV[j],        EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j].VActive );
-      myEDID.AddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myBaseMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
+      myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    myEDIDMetaConfig.myBaseMetaConfig.PixelScalingH[j],    myEDIDMetaConfig.myBaseMetaConfig.PixelScalingV[j],        myEDIDMetaConfig.myBaseMetaConfig.myModeLine[j].HActive,    myEDIDMetaConfig.myBaseMetaConfig.myModeLine[j].VActive );
+      myEDID.AddDetailedDescriptorTiming(myEDIDMetaConfig.myBaseMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
     }
   } else {
     myEDID.SetRGB444WithNoDPMSWithNoNativeTimingsAndNoContinuiousFrequency();
@@ -257,31 +268,31 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   }
   
   // Note: HDMI block is not really needed, no audio and no freesync 
-  if(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive != 0) {
+  if(myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive != 0) {
   // Add a DiD block
       myEDID.DiDCreateBlock(); 
       uint8_t myPositionH=VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.MyPositionH;
       if(AmPrimary == false){myPositionH = myPositionH+1;}
-      myEDID.DiDAddTiledDescriptor(ManufacturerID, BasePID + EDIDMetaConfigID, SerialNumber, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.NumDisplaysH, VideoWallConfig.NumDisplaysV, myPositionH, VideoWallConfig.MyPositionV, EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].HActive, EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[0].VActive);
+      myEDID.DiDAddTiledDescriptor(ManufacturerID, BasePID + EDIDMetaConfigID, SerialNumber, VideoWallConfig.NumTilesPerDisplay*VideoWallConfig.NumDisplaysH, VideoWallConfig.NumDisplaysV, myPositionH, VideoWallConfig.MyPositionV, myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive, myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].VActive);
 
       for(uint8_t j=0; j<EDID_DID_MODELINE_SLOTS; j++){
-        myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingH,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.PixelScalingV,        EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[j].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[j].VActive );
-        myEDID.DiDAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myTiledMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
+        myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    myEDIDMetaConfig.myTiledMetaConfig.PixelScalingH,    myEDIDMetaConfig.myTiledMetaConfig.PixelScalingV,        myEDIDMetaConfig.myTiledMetaConfig.myModeLine[j].HActive,    myEDIDMetaConfig.myTiledMetaConfig.myModeLine[j].VActive );
+        myEDID.DiDAddDetailedDescriptorTiming(myEDIDMetaConfig.myTiledMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
       }
       myEDID.DiDSetChecksum(); 
       myEDID.FixChecksumExtensionBlock();
   } else {
-  if(EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.myModeLine[0].HActive != 0) {
+  if(myEDIDMetaConfig.myCEAMetaConfig.myModeLine[0].HActive != 0) {
     // Add a CEA block
       myEDID.CEACreateBlock(); 
       myEDID.CEAAddHDMI();
-      myEDID.CEAAddHDMITwoPointZero();
-      if (EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.AddStandardModes == true){
+      myEDID.CEAAddHDMITwoPointOne();
+      if (myEDIDMetaConfig.myCEAMetaConfig.AddStandardModes == true){
         myEDID.CEAAddSupportedStandardModes();
       }
       for(uint8_t j=0; j<EDID_CEA_MODELINE_SLOTS; j++){
-        myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.PixelScalingH[j],    EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.PixelScalingV[j],        EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.myModeLine[j].HActive,    EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.myModeLine[j].VActive );
-        myEDID.CEAAddDetailedDescriptorTiming(EDIDMetaConfigs[EDIDMetaConfigID].myCEAMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
+        myImageDimensions = ImageSizeCalculator(    PanelInfoArray[PanelID].DotsPerInch,    myEDIDMetaConfig.myCEAMetaConfig.PixelScalingH[j],    myEDIDMetaConfig.myCEAMetaConfig.PixelScalingV[j],        myEDIDMetaConfig.myCEAMetaConfig.myModeLine[j].HActive,    myEDIDMetaConfig.myCEAMetaConfig.myModeLine[j].VActive );
+        myEDID.CEAAddDetailedDescriptorTiming(myEDIDMetaConfig.myCEAMetaConfig.myModeLine[j], myImageDimensions.ImageWidthInMillimeters, myImageDimensions.ImageHeightInMillimeters);
       }
       myEDID.FixChecksumExtensionBlock();
   }

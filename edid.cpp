@@ -284,23 +284,23 @@ void EDID::CEACreateBlock(){
 
 void EDID::CEAAddHDMI(){
   uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2);
-  Serial.print(F("myByteOffsetHDMI=")); Serial.println(myByteOffset);
-  EDID::SetByte(CEABlockOffset+2, EDID::GetByte(CEABlockOffset+2)+0x06);
+  EDID::SetByte(CEABlockOffset+2, EDID::GetByte(CEABlockOffset+2)+0x08);
   // Add empty HDMI block, 340MHz max, no features
-  EDID::SetByte(myByteOffset+0, 0x65);
+  EDID::SetByte(myByteOffset+0, 0x67);
   EDID::SetByte(myByteOffset+1, 0x03);
   EDID::SetByte(myByteOffset+2, 0x0C);
   EDID::SetByte(myByteOffset+3, 0x00);
-  EDID::SetByte(myByteOffset+4, 0x10);
+  EDID::SetByte(myByteOffset+4, 0x00);
   EDID::SetByte(myByteOffset+5, 0x00);
+  EDID::SetByte(myByteOffset+6, 0x00);
+  EDID::SetByte(myByteOffset+7, 0x44);
 }
 
-void EDID::CEAAddHDMITwoPointZero(){
+void EDID::CEAAddHDMITwoPointOne(){
   uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2);
-  Serial.print(F("myByteOffsetHDMI2=")); Serial.println(myByteOffset);
-  EDID::SetByte(CEABlockOffset+2, EDID::GetByte(CEABlockOffset+2)+0x08);
+  EDID::SetByte(CEABlockOffset+2, EDID::GetByte(CEABlockOffset+2)+0x0E);
   // 600MHz max, no features
-  EDID::SetByte(myByteOffset+0, 0x67);
+  EDID::SetByte(myByteOffset+0, 0x6D);
   EDID::SetByte(myByteOffset+1, 0xD8);
   EDID::SetByte(myByteOffset+2, 0x5D);
   EDID::SetByte(myByteOffset+3, 0xC4);
@@ -308,11 +308,16 @@ void EDID::CEAAddHDMITwoPointZero(){
   EDID::SetByte(myByteOffset+5, 0x78);
   EDID::SetByte(myByteOffset+6, 0x00);
   EDID::SetByte(myByteOffset+7, 0x00);
+  EDID::SetByte(myByteOffset+8, 0x00);
+  EDID::SetByte(myByteOffset+9, 0x00);
+  EDID::SetByte(myByteOffset+10, 0x00);
+  EDID::SetByte(myByteOffset+11, 0x00);
+  EDID::SetByte(myByteOffset+12, 0x00);
+  EDID::SetByte(myByteOffset+13, 0x00);
 }
 
 void EDID::CEAAddSupportedStandardModes(){
   uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2);
-  Serial.print(F("myByteOffsetHDMI2=")); Serial.println(myByteOffset);
   EDID::SetByte(CEABlockOffset+2, EDID::GetByte(CEABlockOffset+2)+0x04);
   // Add 1080p60, 1080p120, 4K60 as "standard" modes for PS5 compatibility
   EDID::SetByte(myByteOffset+0, 0x43);
@@ -325,8 +330,6 @@ void EDID::CEAAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInM
   const uint8_t CEA_DTD_SIZE = 18;
   uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2) + NumberOfFilledCEADescriptorBlocks * CEA_DTD_SIZE;
   if(myModeLine.HActive==0) { Serial.print(F("SkippingDTD")); return; }
-  Serial.print(F("myEntry=")); Serial.println(NumberOfFilledCEADescriptorBlocks);
-  Serial.print(F("myByteOffset=")); Serial.println(myByteOffset);
   EDID::AddDetailedDescriptorTiming18BytesToOffset(myByteOffset, myModeLine, HSizeInMilliMeters, VSizeInMilliMeters);
   NumberOfFilledCEADescriptorBlocks = NumberOfFilledCEADescriptorBlocks +1;
   EDID::SetByte(CEABlockOffset+3, NumberOfFilledCEADescriptorBlocks);  // update number of native formats
@@ -497,21 +500,20 @@ void EDID::PrintEDID(){
     Serial.print(F(" "));
     //  SerialDebug(F("0x"));
     PrintHexByte(EDID::GetByte(i));
-    if(i%16 == 15) {SerialDebugln(F(""));}
+    if(i%16 == 15) {Serial.println(F(""));}
   }
   uint8_t print_the_extension_block=false;
   for(uint16_t i=128; i<EDID_SIZE; i++){
     if(EDID::GetByte(i)!=0x00) {print_the_extension_block=true;}
   }
   if(print_the_extension_block==true) {
-  //SerialDebugln(F(" DiD Buffer:"));
     for(uint16_t i=128; i<EDID_SIZE; i++){
       Serial.print(F(" "));
-      //  SerialDebug(F("0x"));
       PrintHexByte(EDID::GetByte(i));
-      if(i%16 == 15) {SerialDebugln(F(""));}
+      if(i%16 == 15) {Serial.println(F(""));}
     }
   }
-  SerialDebugln(F(""));
+  Serial.println(F(""));
 }
+
 

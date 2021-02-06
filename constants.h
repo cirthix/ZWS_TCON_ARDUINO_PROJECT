@@ -28,16 +28,20 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define DISABLED 0
 #endif
 
-#define SERIAL_DEBUGGING_OUTPUT DISABLED
+#define SERIAL_DEBUGGING_OUTPUT ENABLED
 // conditional debugging
 #if (SERIAL_DEBUGGING_OUTPUT == ENABLED)
-#define SerialDebug(x)      Serial.print(x);   Serial.flush();
-#define SerialDebugln(x)    Serial.println(x); Serial.flush();
+#define SerialDebug(x)      Serial.print(F(x));   Serial.flush();
+#define SerialDebugD(x)     Serial.print(x);   Serial.flush();
+#define SerialDebugln(x)    Serial.println(F(x)); Serial.flush();
+#define SerialDebuglnD(x)   Serial.println(x);   Serial.flush();
 #define SerialWrite(x)      Serial.write(x);   Serial.flush();
 #define SerialFlush()       Serial.flush()
 #else
 #define SerialDebug(x)      ((void) 0)
+#define SerialDebugD(x)     ((void) 0)
 #define SerialDebugln(x)    ((void) 0)
+#define SerialDebuglnD(x)   ((void) 0)
 #define SerialWrite(x)      ((void) 0)
 #define SerialFlush()       ((void) 0)
 #endif
@@ -61,8 +65,8 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define BOARD_IS_EP369_REV2017          201
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define PANEL_VERSION PANEL_IS_V390DKZIS
-#define BUTTONBOARD_VERSION BUTTONBOARD_IS_ZISWORKS
+#define PANEL_VERSION PANEL_IS_M280GJQDZIS
+#define BUTTONBOARD_VERSION BUTTONBOARD_IS_SAMSUNG
 #define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
 // Note that you also have the option to change EDID configurations in edid_construction file
 #define PreferMinimalTimings true

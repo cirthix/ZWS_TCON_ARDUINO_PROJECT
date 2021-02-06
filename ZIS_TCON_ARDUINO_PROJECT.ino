@@ -37,8 +37,8 @@ SendOnlySoftwareSerial SerialToBldriver(BLPIN_PWM);
 
 InputHandling Inputs;
 EDID myEDID = EDID(); 
-SoftIIC my_SoftIIC_EDID_PRI=SoftIIC(SCL_PIN_PRI, SDA_PIN_PRI, IIC_SPEED, false, false, true);
-SoftIIC my_SoftIIC_EDID_SEC=SoftIIC(SCL_PIN_SEC, SDA_PIN_SEC, IIC_SPEED, false, false, true);
+SoftIIC my_SoftIIC_EDID_PRI=SoftIIC(SCL_PIN_PRI, SDA_PIN_PRI, IIC_SPEED, true, false, true);
+SoftIIC my_SoftIIC_EDID_SEC=SoftIIC(SCL_PIN_SEC, SDA_PIN_SEC, IIC_SPEED, true, false, true);
 
 #ifdef LED_RGB
   #define LEDCount 1   // Number of LEDs in RGB string
@@ -138,34 +138,35 @@ void setup(){
   Serial.println(F("" __DATE__ " " __TIME__ "\n"));  
   Serial.print(F("PCB: ")); board_print_name(); 
   Serial.print(F("CFG: ")); panel_print_name(); 
+
   if ((!DetermineIfFactoryProgrammed())) {   do_factory_configuration();  }  // This is very early because we don't want anything to interfere with factory programming.  It should run standalone.
-  
+  SerialDebugln("\nSTART");
   power_down_receivers();
   regular_operation_transmitters();
   power_down_fpga();  
-  SerialDebugln(F("\nINIT"));
+  SerialDebugln("\nINIT");
   /*SerialFlush();Disabled*/
   // Note: atmega chips power up with all pins in input mode (high impedance).  When first using a pin as an output, it must be declared as such.
  
 // ENABLE THE WATCHDOG TIMER
-//  SerialDebugln(F("\nINIT/WDT")); 
+//  SerialDebugln("\nINIT/WDT"); 
 //  /*SerialFlush();Disabled*/ // Flush serial output in case somethinge goes horribly wrong, that way we guarantee seeing the last line of output.
 //    configure_watchdog_timer();     
-//  SerialDebugln(F("\t->OK"));
+//  SerialDebugln("\t->OK");
 
-  SerialDebugln(F("\nINIT/MISC\n\n")); 
+  SerialDebugln("\nINIT/MISC\n\n"); 
   I_AM_A_SECONDARY=UserConfiguration_LoadWasSecondary();
     
-  SerialDebugln(F("\nINIT/UARTs"));   
+  SerialDebugln("\nINIT/UARTs");   
   SerialToPanel.begin(PANEL_UART_SPEED);
   SerialToBldriver.begin(BACKLIGHT_UART_SPEED);
-  SerialDebugln(F("\t->OK"));   
+  SerialDebugln("\t->OK");   
 
-  SerialDebugln(F("\nINIT/Backlight"));   
+  SerialDebugln("\nINIT/Backlight");   
   InitialConfigureBacklightPWM();
-  SerialDebugln(F("\t->OK"));   
+  SerialDebugln("\t->OK");   
   
-  SerialDebugln(F("\nINIT/DONE\n\n")); 
+  SerialDebugln("\nINIT/DONE\n\n"); 
   /*SerialFlush();Disabled*/
   FinishedConfigurationTime=millis();
   ButtonHoldTime = FinishedConfigurationTime;
@@ -224,7 +225,7 @@ void Task100ms(){
 }
 
 void Task1000ms(){
-  if(CheckVideoActive()==false) {  SerialDebug(F("\n VIDEO fail\n")); /*SerialFlush();Disabled*/ }
+  if(CheckVideoActive()==false) {  SerialDebug("\n VIDEO fail\n"); /*SerialFlush();Disabled*/ }
   Inputs.PrintState();
   SendSerialStateToPanel();
 }
@@ -250,7 +251,7 @@ boolean PrintStateChanges = true;
     uint8_t myVideoActive = CheckVideoActive();
     switch (SystemState) {
       case SystemState_Init:     
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : Init0")); /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : Init0"); /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_down_receivers();
           regular_operation_transmitters();
@@ -259,7 +260,7 @@ boolean PrintStateChanges = true;
         break;
       case SystemState_PowerOff:     
         if( myUserConfiguration_LoadShutdown!=TargetPowerSaveSHUTDOWN ){
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : Off0")); /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : Off0"); /*SerialFlush();Disabled*/}
           BacklightDisable();
           SystemStateCounter=SystemStateDelay_OffToRx;
           SystemState=SystemState_Rx;
@@ -267,7 +268,7 @@ boolean PrintStateChanges = true;
         break;
       case SystemState_Rx:
         if( (SystemStateCounter==0) && (myUserConfiguration_LoadShutdown==TargetPowerSaveFULLY_ON) ){
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : Rx0")); /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : Rx0"); /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_up_receivers();    
           SystemStateCounter=SystemStateDelay_RxToTx;
@@ -275,7 +276,7 @@ boolean PrintStateChanges = true;
           break;
         }
         if( (myUserConfiguration_LoadShutdown==TargetPowerSaveSHUTDOWN) ){
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : Rx1")); /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : Rx1"); /*SerialFlush();Disabled*/}
           BacklightDisable();
           SystemStateCounter=0;
           SystemState=SystemState_PowerOff;
@@ -284,21 +285,21 @@ boolean PrintStateChanges = true;
         break;
       case SystemState_Tx:       
         if( (myUserConfiguration_LoadShutdown==TargetPowerSaveSHUTDOWN) ){
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : Tx0")); /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : Tx0"); /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_down_receivers();
           SystemState=SystemState_PowerOff;
           break;      
         }
         if( myUserConfiguration_LoadShutdown==TargetPowerSaveLOWPOWER ){
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : Tx1")); /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : Tx1"); /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_down_receivers();
           SystemState=SystemState_Rx;
           break;      
         }
         if(SystemStateCounter==0) {
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : Tx2")); /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : Tx2"); /*SerialFlush();Disabled*/}
           BacklightDisable();
           regular_operation_transmitters();
           SystemStateCounter=SystemStateDelay_TxToPanel;
@@ -308,7 +309,7 @@ boolean PrintStateChanges = true;
         break;
       case SystemState_Panel:            
         if( (myUserConfiguration_LoadShutdown==TargetPowerSaveSHUTDOWN) ){
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : P0"));  /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : P0");  /*SerialFlush();Disabled*/}
           BacklightDisable();
           force_sleep_transmitters();
           power_down_receivers();
@@ -317,7 +318,7 @@ boolean PrintStateChanges = true;
           break;
         }
         if( myUserConfiguration_LoadShutdown==TargetPowerSaveLOWPOWER ){
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : P1"));  /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : P1");  /*SerialFlush();Disabled*/}
           BacklightDisable();
           force_sleep_transmitters();
           SystemStateCounter=SystemStateDelay_OffToRx;
@@ -326,7 +327,7 @@ boolean PrintStateChanges = true;
         }
       
         if ( (SystemStateCounter==0) && (myVideoActive == true ) ) {
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : P2"));  /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : P2");  /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_up_fpga();
           SystemStateCounter=VIDEO_SIGNAL_TO_BACKLIGHT_ON_DELAY;
@@ -336,7 +337,7 @@ boolean PrintStateChanges = true;
       break;      
       case SystemState_Backlight: 
         if( (myUserConfiguration_LoadShutdown==TargetPowerSaveSHUTDOWN) ){
-      if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : B0"));  /*SerialFlush();Disabled*/}
+      if(PrintStateChanges) {SerialDebugln("SysStateTransition : B0");  /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_down_fpga();
           force_sleep_transmitters();
@@ -345,7 +346,7 @@ boolean PrintStateChanges = true;
           break;
         }
         if( myUserConfiguration_LoadShutdown==TargetPowerSaveLOWPOWER ){
-          if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : B1"));  /*SerialFlush();Disabled*/}
+          if(PrintStateChanges) {SerialDebugln("SysStateTransition : B1");  /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_down_fpga();
           force_sleep_transmitters();
@@ -354,7 +355,7 @@ boolean PrintStateChanges = true;
           break;
         }
         if ( myVideoActive == false ) {
-          if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : B2"));  /*SerialFlush();Disabled*/}
+          if(PrintStateChanges) {SerialDebugln("SysStateTransition : B2");  /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_down_fpga();
           SystemStateCounter=0;
@@ -362,7 +363,7 @@ boolean PrintStateChanges = true;
           break;
         }          
         if ( SystemStateCounter==0 ) {
-          if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : B3"));  /*SerialFlush();Disabled*/}
+          if(PrintStateChanges) {SerialDebugln("SysStateTransition : B3");  /*SerialFlush();Disabled*/}
           BacklightEnable();
           SystemStateCounter=0;
           SystemState=SystemState_On;
@@ -371,7 +372,7 @@ boolean PrintStateChanges = true;
         break;
       case SystemState_On: 
         if( (myUserConfiguration_LoadShutdown==TargetPowerSaveSHUTDOWN) ){
-          if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : ON0"));  /*SerialFlush();Disabled*/}
+          if(PrintStateChanges) {SerialDebugln("SysStateTransition : ON0");  /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_down_fpga();
           force_sleep_transmitters();
@@ -381,7 +382,7 @@ boolean PrintStateChanges = true;
           break;
         }
         if( myUserConfiguration_LoadShutdown==TargetPowerSaveLOWPOWER ){
-          if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : ON1"));  /*SerialFlush();Disabled*/}
+          if(PrintStateChanges) {SerialDebugln("SysStateTransition : ON1");  /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_down_fpga();
           force_sleep_transmitters();
@@ -390,7 +391,7 @@ boolean PrintStateChanges = true;
           break;
         }
         if ( myVideoActive == false ) {
-          if(PrintStateChanges) {SerialDebugln(F("SysStateTransition : ON2"));  /*SerialFlush();Disabled*/}
+          if(PrintStateChanges) {SerialDebugln("SysStateTransition : ON2");  /*SerialFlush();Disabled*/}
           BacklightDisable();
           power_down_fpga();
           SystemStateCounter=0;
@@ -399,7 +400,7 @@ boolean PrintStateChanges = true;
         }          
         break;
       default:                
-        if(PrintStateChanges) {SerialDebug(F("SysStateTransition : DEFAULTED :")); SerialDebugln(SystemState ); /*SerialFlush();Disabled*/}
+        if(PrintStateChanges) {SerialDebug("SysStateTransition : DEFAULTED :"); SerialDebuglnD(SystemState ); /*SerialFlush();Disabled*/}
         SystemState = SystemState_PowerOff;
         SystemStateCounter = 0;      
     }
@@ -423,48 +424,48 @@ void SendSerialStateToBldriver() {
   } else {    
     SerialToBldriver.write(ASCII_CODE_FOR_POWER_OFF);
   }
-// SerialToBldriver.print(F(".")); SerialToBldriver.println(PanelInfoArray[PANEL_VERSION].Name);  This functionality could result in undesired edge-cases.  Disable it.
+// SerialToBldriver.print(F("."); SerialToBldriver.println(PanelInfoArray[PANEL_VERSION].Name);  This functionality could result in undesired edge-cases.  Disable it.
 }
 
 
 
 void PrintSystemState(){  
   
-SerialDebug(F("SystemState : ")); 
+SerialDebug("SystemState : "); 
   switch (SystemState) {
-  case SystemState_PowerOff:     SerialDebugln(F("OFF"));   break;
-  case SystemState_Rx    :       SerialDebugln(F("RX"));    break;
-  case SystemState_Tx    :       SerialDebugln(F("TX"));    break;
-  case SystemState_Panel  :      SerialDebugln(F("Panel")); break;
-  case SystemState_Backlight:    SerialDebugln(F("BL"));    break;
-  case SystemState_On:           SerialDebugln(F("ON"));    break;
-  default:                       SerialDebug(F("???"));  SerialDebugln(SystemState);
+  case SystemState_PowerOff:     SerialDebugln("OFF");   break;
+  case SystemState_Rx    :       SerialDebugln("RX");    break;
+  case SystemState_Tx    :       SerialDebugln("TX");    break;
+  case SystemState_Panel  :      SerialDebugln("Panel"); break;
+  case SystemState_Backlight:    SerialDebugln("BL");    break;
+  case SystemState_On:           SerialDebugln("ON");    break;
+  default:                       SerialDebug("???");  SerialDebuglnD(SystemState);
   }
   
 uint8_t myUserConfiguration_LoadShutdown=UserConfiguration_LoadShutdown();
-SerialDebug(F("TargetState : ")); 
+SerialDebug("TargetState : "); 
   switch (UserConfiguration_LoadShutdown()) {
-  case TargetPowerSaveSHUTDOWN:  SerialDebugln(F("OFF"));  break;
-  case TargetPowerSaveLOWPOWER:  SerialDebugln(F("LOW"));  break;
-  case TargetPowerSaveFULLY_ON:  SerialDebugln(F("ON"));   break;
-  default:                       SerialDebug(F("???"));   SerialDebugln(myUserConfiguration_LoadShutdown);
+  case TargetPowerSaveSHUTDOWN:  SerialDebugln("OFF");  break;
+  case TargetPowerSaveLOWPOWER:  SerialDebugln("LOW");  break;
+  case TargetPowerSaveFULLY_ON:  SerialDebugln("ON");   break;
+  default:                       SerialDebug("???");   SerialDebuglnD(myUserConfiguration_LoadShutdown);
   }
 
-SerialDebug(F("BacklightState : ")); 
+SerialDebug("BacklightState : "); 
   if(CONNECTED_BACKLIGHT == CONNECTED_BACKLIGHT_IS_ZWS){
     switch (ZWS_BACKLIGHT_MODE) {
-    case ZWS_BACKLIGHT_MODE_PWM:    SerialDebugln(F("ZWS_PWM"));  break;
-    case ZWS_BACKLIGHT_MODE_NOPWM:  SerialDebugln(F("ZWS_PWMFREE"));  break;
-    case ZWS_BACKLIGHT_MODE_STROBE: SerialDebugln(F("ZWS_STROBE"));   break;
-    case ZWS_BACKLIGHT_MODE_SCAN:   SerialDebugln(F("ZWS_SCAN"));   break;
-    default:                        SerialDebugln(F("ZWS_INVALID"));
+    case ZWS_BACKLIGHT_MODE_PWM:    SerialDebugln("ZWS_PWM");  break;
+    case ZWS_BACKLIGHT_MODE_NOPWM:  SerialDebugln("ZWS_PWMFREE");  break;
+    case ZWS_BACKLIGHT_MODE_STROBE: SerialDebugln("ZWS_STROBE");   break;
+    case ZWS_BACKLIGHT_MODE_SCAN:   SerialDebugln("ZWS_SCAN");   break;
+    default:                        SerialDebugln("ZWS_INVALID");
     };
   } else {
     if(BacklightGetState() == true) {
-      SerialDebugln(F("InternalPWM"));
-      SerialDebug(F("Brightness=")); SerialDebugln(BacklightGetBrightness());
+      SerialDebugln("InternalPWM");
+      SerialDebug("Brightness="); SerialDebuglnD(BacklightGetBrightness());
     } else {
-      SerialDebugln(F("OFF"));
+      SerialDebugln("OFF");
     }
   }
 }
@@ -483,7 +484,7 @@ void DeterminePrimarySecondary(){
 }
 
 void PrimarySecondaryChangedStates(){  
-    SerialDebugln(F("Primary/Secondary detection changed"));
+    SerialDebugln("Primary/Secondary detection changed");
     set_selected_edid(UserConfiguration_LoadEDID());
 }
 
@@ -554,7 +555,7 @@ wdt_enable(WDTO_4S);
 
 void power_down_fpga() {
   if(PowerStateFPGA != PowerStateOff){
-    SerialDebugln(F("F-"));
+    SerialDebugln("F-");
     pinMode(CONTROL_VREG_VPANEL,OUTPUT);  digitalWrite(CONTROL_VREG_VPANEL, LOW);
     PowerStateFPGA = PowerStateOff;
   }
@@ -562,7 +563,7 @@ void power_down_fpga() {
 
 void power_up_fpga() {
   if(PowerStateFPGA != PowerStateOn){
-    SerialDebugln(F("F+"));
+    SerialDebugln("F+");
     pinMode(CONTROL_VREG_VPANEL,OUTPUT);  digitalWrite(CONTROL_VREG_VPANEL, HIGH);
     PowerStateFPGA = PowerStateOn;
     uint32_t WhenToStopSpammingUART = millis() + MillisToSpamConfigUART;
@@ -576,7 +577,7 @@ void power_up_fpga() {
 uint8_t PowerStateTx = PowerStateInvalid;
 void force_sleep_transmitters() {
   if(PowerStateTx != PowerStateOff){
-    SerialDebugln(F("Tx-"));
+    SerialDebugln("Tx-");
     pinMode(LOW_POWER_MODE_PRI,OUTPUT); digitalWrite(LOW_POWER_MODE_PRI, HIGH);
     #ifdef LOW_POWER_MODE_SEC
     pinMode(LOW_POWER_MODE_SEC,OUTPUT); digitalWrite(LOW_POWER_MODE_SEC, HIGH);
@@ -587,7 +588,7 @@ void force_sleep_transmitters() {
 
 void regular_operation_transmitters() {
   if(PowerStateTx != PowerStateOn){
-    SerialDebugln(F("Tx+"));
+    SerialDebugln("Tx+");
     pinMode(LOW_POWER_MODE_PRI,OUTPUT); digitalWrite(LOW_POWER_MODE_PRI, LOW);
 #ifdef LOW_POWER_MODE_SEC
     pinMode(LOW_POWER_MODE_SEC,OUTPUT); digitalWrite(LOW_POWER_MODE_SEC, LOW);
@@ -601,7 +602,7 @@ const uint32_t millis_between_dp_connections = 500;
 uint8_t PowerStateRx = PowerStateInvalid;
 void power_up_receivers() {
   if(PowerStateRx != PowerStateOn){
-    SerialDebugln(F("Rx+"));
+    SerialDebugln("Rx+");
     pinMode(RESET_OTHER_CHIPS_PRI,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_PRI, HIGH); 
     #ifdef RESET_OTHER_CHIPS_SEC
     delay( millis_between_dp_connections );
@@ -613,7 +614,7 @@ void power_up_receivers() {
 
 void power_down_receivers() {
   if(PowerStateRx != PowerStateOff){
-    SerialDebugln(F("Rx-"));
+    SerialDebugln("Rx-");
     #ifdef RESET_OTHER_CHIPS_SEC
     pinMode(RESET_OTHER_CHIPS_SEC,OUTPUT); digitalWrite(RESET_OTHER_CHIPS_SEC, LOW);
     delay( millis_between_dp_connections );  
@@ -624,7 +625,7 @@ void power_down_receivers() {
 }
 
 void do_factory_configuration() {
-  SerialDebugln(F("Fac"));  
+  SerialDebugln("Fac");  
   power_down_fpga();
  // power_up_board();   while(1){;} // This line is useful when trying to prgram the internal ep369s mcu sometimes  
   /*SerialFlush();Disabled*/
@@ -634,15 +635,17 @@ void do_factory_configuration() {
   UserConfiguration_SaveDefaultBrightness();
   UserConfiguration_SaveDefaultOSD();
   UserConfiguration_SaveDefaultCrosshair();
-  write_config_eeproms(); 
+  SerialDebugln("FacEEPROMs");  
+  write_config_eeproms();
+  SerialDebugln("FinishedDone_almost");   
   UserConfiguration_SaveDefaultMagicByte();
-  SerialDebugln(F("FinishedFac"));  
+  SerialDebugln("FinishedFac");  
   softReset();
 }
 
 
 void softReset() {  
-  SerialDebugln(F("\nRst!"));  /*SerialFlush();Disabled*/
+  SerialDebugln("\nRst!");  /*SerialFlush();Disabled*/
   noInterrupts();
   power_down_fpga();
   zdelay(500); // Ensure that the board is powered down sufficiently long to cause a full reset. 
@@ -696,7 +699,7 @@ void MaybeSendUARTCharToPanel(uint8_t myChar){
   if(PowerStateFPGA == PowerStateOn){
     BlockPanelUARTSelfUpdate = millis() + MillisBetweenForwardedUARTAndSerialStatusSending;
     SerialToPanel.write(myChar);
-    //SerialDebug(F("Forwarded byte: "));  SerialWrite(myChar); SerialDebugln(F(""));
+    //SerialDebug("Forwarded byte: ");  SerialWrite(myChar); SerialDebugln("");
   }
 }
 
@@ -795,7 +798,7 @@ void handle_button_state() {
     if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_CROSSHAIR)     { CrosshairToggle();                  return; }
     if(CONNECTED_BACKLIGHT == CONNECTED_BACKLIGHT_IS_ZWS){
       if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_TOGGLE_STEREO_EYE)  { SerialToBldriver.write(ASCII_CODE_FOR_TOGGLE_STEREO_EYE); return;}
-      if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_STROBE_ROTATE)  { SerialDebugln(F("SendRotateComamnd")); SerialToBldriver.write(ASCII_CODE_FOR_STROBE_ROTATE); return;}
+      if (Inputs.GetPreviousFilteredInput() == COMMAND_CODE_FOR_STROBE_ROTATE)  { SerialDebugln("SendRotateComamnd"); SerialToBldriver.write(ASCII_CODE_FOR_STROBE_ROTATE); return;}
     }
   }
   if(CONNECTED_BACKLIGHT == CONNECTED_BACKLIGHT_IS_ZWS){
@@ -822,7 +825,7 @@ void EnterTestMode(){
 }
 
 void toggle_power_state() {
-//  SerialDebugln(F("PSTATE TOGGLE")); 
+//  SerialDebugln("PSTATE TOGGLE"); 
   if (UserConfiguration_LoadShutdown() != TargetPowerSaveFULLY_ON) {
     set_on_power_state();  
   }
@@ -899,7 +902,7 @@ uint8_t ConfigGenerateEPMI(){
     case 6: retval=retval| CONFIGMASK_EPMI_DW1 ; break;// DW1,DW0=10
     case 8: retval=retval| CONFIGMASK_EPMI_DW0 ; break;// DW1,DW0=01
     case 10: retval=retval ; break; // DW1,DW0=00
-    default: retval=retval | CONFIGMASK_EPMI_DW1| CONFIGMASK_EPMI_DW0; SerialDebugln(F("Bits??")); 
+    default: retval=retval | CONFIGMASK_EPMI_DW1| CONFIGMASK_EPMI_DW0; SerialDebugln("Bits??"); 
     } 
 
 return retval;
@@ -917,6 +920,10 @@ void CheckEPMIConfig(){
 }
 
 void write_config_eeproms(){  
+  #if DEBUG_OPTION_SKIP_EDID_PROGRAMMING == true
+    return;
+  #endif
+  boolean doVerification = true;
     uint32_t dp_rx_shutdown_millis = millis();
     const uint32_t millis_disconnect_for_dp_edid_change = 1000;
     const uint32_t millis_disconnect_for_zeroed_edid = 1000;
@@ -924,7 +931,7 @@ void write_config_eeproms(){
 
     uint8_t TargetProfile = UserConfiguration_LoadEDID();
     uint8_t SerialNumber = MagicByte();
-
+    uint16_t failureCount = 0;
 
   #if BOARD_VERSION==BOARD_IS_EP369_REV2017    
     myEDID.Reset();
@@ -936,40 +943,59 @@ void write_config_eeproms(){
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
-    update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte);     
+    failureCount = update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte);     
+    if(failureCount > 0) { Serial.println(F("\nEEPROM update failed!"));}
+    if((failureCount == 0) && (doVerification==true)){
+      failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte);     
+      if(failureCount > 0) { Serial.println(F("\nEEPROM verify failed!"));}
+    }
   #else
     myEDID.Reset();
+    //power_down_receivers();
+    SerialDebugln("WriteZeroesPrimary");
     update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
+    SerialDebugln("WriteZeroesSeconary");
     update_eeprom(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte); 
     power_up_receivers();  
     delay(millis_disconnect_for_zeroed_edid);
     power_down_receivers();
     
+    SerialDebugln("WritePrimary");
     GenerateEDIDWithParameters(true, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
-    update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
-
+    failureCount=update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte); 
+    if(failureCount > 0) { Serial.println(F("\nPRI EEPROM update failed!"));}
+    if((failureCount == 0) && (doVerification==true)){
+      failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte);     
+      if(failureCount > 0) { Serial.println(F("\nPRI EEPROM verify failed!"));}
+    }
+    SerialDebugln("WriteSecondary");
     GenerateEDIDWithParameters(false, ENABLE_SECONDARY_INPUT_TO_BE_USED_DURING_SINGLE_INPUT_MODE, PANEL_VERSION, TargetProfile, SerialNumber);
     myEDID.PrintEDID();   
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI()); 
-    update_eeprom(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte); 
+    failureCount=update_eeprom(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte); 
+    if(failureCount > 0) { Serial.println(F("\nSEC EEPROM update failed!"));}
+    if((failureCount == 0) && (doVerification==true)){
+      failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByte);     
+      if(failureCount > 0) { Serial.println(F("\nSEC EEPROM verify failed!"));}
+    }
   #endif
-    
     while ((millis() - dp_rx_shutdown_millis) < millis_disconnect_for_dp_edid_change) {wdt_reset();}
     power_up_receivers();  
 }
 
-uint8_t update_eeprom(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp_virtualeeprom)(uint8_t address )){
+uint16_t update_eeprom(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp_virtualeeprom)(uint8_t address )){
     // Try page mode twice, then use byte mode as a fallback method
-    uint8_t retval=0;
-    retval=update_eeprom_page_mode( my_SoftIIC, eeprom_address,fp_virtualeeprom); if(retval==0) {goto end_of_update_eeprom_function;}
-    retval=update_eeprom_page_mode( my_SoftIIC, eeprom_address,fp_virtualeeprom); if(retval==0) {goto end_of_update_eeprom_function;}
-    retval=update_eeprom_byte_mode( my_SoftIIC, eeprom_address,fp_virtualeeprom);
+    uint16_t retval=0;
+    //retval=update_eeprom_page_mode( my_SoftIIC, eeprom_address,fp_virtualeeprom); if(retval==0) {goto end_of_update_eeprom_function;}
+    //retval=update_eeprom_page_mode( my_SoftIIC, eeprom_address,fp_virtualeeprom); if(retval==0) {goto end_of_update_eeprom_function;}
+    //retval=update_eeprom_byte_mode( my_SoftIIC, eeprom_address,fp_virtualeeprom);
+    retval=update_eeprom_byte_mode_write_only_differences( my_SoftIIC, eeprom_address,fp_virtualeeprom);
 
-    end_of_update_eeprom_function:
+//    end_of_update_eeprom_function:
 //    my_SoftIIC->MasterDumpRegisters(eeprom_address); // This should normally be commented out    
     return retval;
 }
@@ -979,7 +1005,7 @@ const uint8_t EEPROM_WRITE_TIME = 9+1;   // Time between i2c eeprom writes, need
 const uint8_t BlinkDividerMax = 8; // Make flashing of status LED more visible
 uint8_t update_eeprom_page_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp_virtualeeprom)(uint8_t address )){
     wdt_reset();  
-    SerialDebug(F("Page8PROG: IIC 0x")); fastprinthexbyte(eeprom_address); SerialDebug(F("\t")); /*SerialFlush();Disabled*/
+    SerialDebug("Page8PROG: IIC 0x"); fastprinthexbyte(eeprom_address); SerialDebug("\t"); /*SerialFlush();Disabled*/
     const uint8_t pagesize=8;
     uint8_t bytearray[pagesize];
     uint8_t tretval=0xff;
@@ -1001,21 +1027,21 @@ uint8_t update_eeprom_page_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uin
           BlinkDivider = BlinkDivider -1;
         }
     }
-    SerialDebug(F(" IIC writes done, "));
-    SerialDebug(failures);
-    SerialDebugln(F(" errors."));
+    SerialDebug(" IIC writes done, "); SerialDebugD(failures); SerialDebugln(" errors.");
     return failures;
 }
 
 uint8_t update_eeprom_byte_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp_virtualeeprom)(uint8_t address )){
     wdt_reset();
-    SerialDebug(F("BytePROG: IIC 0x")); fastprinthexbyte(eeprom_address); SerialDebug(F("\t")); /*SerialFlush();Disabled*/
+    SerialDebug("BytePROG: IIC 0x"); fastprinthexbyte(eeprom_address); SerialDebug("\t"); /*SerialFlush();Disabled*/
     uint8_t tretval=0xff;
     uint16_t failures = 1;
     uint16_t current_address = 0;
     uint8_t BlinkDivider = BlinkDividerMax;
-    while (failures > 0) {
+    uint8_t retries_remaining = 3;
+    while ((failures > 0) && (retries_remaining>0) ) {
         failures = 0;
+        retries_remaining = retries_remaining -1;        
         for (current_address = 0; current_address <= 0xff; current_address++ ) {
             /*SerialFlush();Disabled*/
             tretval=my_SoftIIC->MasterWriteByte( eeprom_address,  current_address,  fp_virtualeeprom(current_address), 1 );
@@ -1028,16 +1054,56 @@ uint8_t update_eeprom_byte_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uin
               BlinkDivider = BlinkDivider -1;
             }
         }
-        SerialDebug(F(" IIC writes done, "));
-        SerialDebug(failures);
-        SerialDebugln(F(" errors."));
+        SerialDebug(" IIC writes done, "); SerialDebugD(failures); SerialDebugln(" errors.");
+
     }
     return failures;
 }
 
 
+uint16_t update_eeprom_byte_mode_write_only_differences(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp_virtualeeprom)(uint8_t address )){
+    wdt_reset();
+    SerialDebug("ByteProg: IIC 0x"); fastprinthexbyte(eeprom_address); SerialDebug("\t"); /*SerialFlush();Disabled*/
+    uint8_t tretval=0xff;
+    uint16_t failures = 1;
+    uint16_t current_address = 0;
+    uint8_t BlinkDivider = BlinkDividerMax;
+    uint8_t retries_remaining = 3;
+    while ((failures > 0) && (retries_remaining>0) ) {
+        failures = 0;
+        retries_remaining = retries_remaining -1;        
+        for (current_address = 0; current_address <= 0xff; current_address++ ) {
+            /*SerialFlush();Disabled*/
+            tretval=my_SoftIIC->MasterReadByte( eeprom_address,  current_address );
+            if(tretval!=fp_virtualeeprom(current_address)){
+              tretval=my_SoftIIC->MasterWriteByte( eeprom_address,  current_address,  fp_virtualeeprom(current_address), 1 );
+              if ( tretval != 0) {        failures++;   SerialDebug("*");   } else {SerialDebug(".");}     
+              zdelay(EEPROM_WRITE_TIME);  // Time between writes
+            }
+            if(BlinkDivider==0){
+              BlinkDivider = BlinkDividerMax;
+              BlinkStateLED();
+            } else { 
+              BlinkDivider = BlinkDivider -1;
+            }
+        }
+        SerialDebug(" IIC writes done, "); SerialDebugD(failures); SerialDebugln(" errors.");
+    }
+    return failures;
+}
 
 
+uint16_t verify_eeprom_byte_mode(SoftIIC* my_SoftIIC, uint8_t eeprom_address, uint8_t (*fp_virtualeeprom)(uint8_t address )){
+    wdt_reset();
+    uint8_t tretval;
+    uint16_t failures = 0;
+    uint16_t current_address = 0;
+    for (current_address = 0; current_address <= 0xff; current_address++ ) {
+        tretval=my_SoftIIC->MasterReadByte( eeprom_address,  current_address );
+        if(tretval!=fp_virtualeeprom(current_address)){failures = failures +1;}
+    }
+    return failures;
+}
 
 
   
@@ -1129,5 +1195,4 @@ void UpdateStateLED(){
    }
    #endif
 }
-
 
