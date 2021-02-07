@@ -1160,7 +1160,7 @@ uint16_t update_both_eeproms_byte_mode_write_only_differences(SoftIIC* my_SoftII
             if((wrotePRI==true) && (tretval_PRI != 0)) {statusCharacter='/';}
             if((wroteSEC==true) && (tretval_SEC != 0)) {statusCharacter='\\';}
             if((wrotePRI==true) && (tretval_PRI != 0) && (wroteSEC==true) && (tretval_SEC != 0)) {statusCharacter='#';}            
-            SerialDebug(statusCharacter);
+            SerialDebugD(statusCharacter);
             if((wrotePRI==true) || (wroteSEC==true)){ delay(EEPROM_WRITE_TIME);}
             if(BlinkDivider==0){
               BlinkDivider = BlinkDividerMax;
@@ -1169,7 +1169,7 @@ uint16_t update_both_eeproms_byte_mode_write_only_differences(SoftIIC* my_SoftII
               BlinkDivider = BlinkDivider -1;
             }
         }
-        SerialDebug(" IIC writes done, "); SerialDebugD(failures); SerialDebugln(" errors.");
+        SerialDebug(" IIC writes done, "); SerialDebugD(failures_PRI);  SerialDebug(" : "); SerialDebugD(failures_SEC); SerialDebugln(" errors.");
     }
     return failures_PRI + failures_SEC;
 }
