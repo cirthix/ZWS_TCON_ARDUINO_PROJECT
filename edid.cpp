@@ -332,7 +332,10 @@ void EDID::CEAAddSupportedStandardModes(){
 void EDID::CEAAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
   const uint8_t CEA_DTD_SIZE = 18;
   uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2) + NumberOfFilledCEADescriptorBlocks * CEA_DTD_SIZE;
-  if(myModeLine.HActive==0) { Serial.print(F("SkippingDTD")); return; }
+  if(myModeLine.HActive==0) { 
+  //  Serial.print(F("SkippingDTD"));
+    return;
+  }
   EDID::AddDetailedDescriptorTiming18BytesToOffset(myByteOffset, myModeLine, HSizeInMilliMeters, VSizeInMilliMeters);
   NumberOfFilledCEADescriptorBlocks = NumberOfFilledCEADescriptorBlocks +1;
   EDID::SetByte(CEABlockOffset+3, NumberOfFilledCEADescriptorBlocks);  // update number of native formats
