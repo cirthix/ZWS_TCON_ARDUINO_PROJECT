@@ -36,7 +36,6 @@ SendOnlySoftwareSerial SerialToPanel(PANEL_GPIO0);
 SendOnlySoftwareSerial SerialToBldriver(BLPIN_PWM);
 
 InputHandling Inputs;
-EDID myEDID = EDID(); 
 
 #if BOARD_VERSION==BOARD_IS_EP369_REV2017    
   EDID myEDID = EDID(); 

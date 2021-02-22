@@ -103,7 +103,7 @@ ModeLine myModeLine[EDID_DID_MODELINE_SLOTS]; // Note: using the fourth slot (if
 #define TiledMetaConfig_Profile4Rect  { 1, 4, ModeLine_540p480_RectMinimal}
 
 struct EDIDMetaConfig {
-unsigned char NameSuffix[6];
+unsigned char NameSuffix[5];
 BaseMetaConfig myBaseMetaConfig;
 TiledMetaConfig myTiledMetaConfig; // If preferred mode is present, we assume that the two tiles left/right in arrangement.  If not present, the secondary DP interface will disconnect from host.
 CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this CEA block in its place
@@ -181,7 +181,6 @@ void PrintEDIDMetaConfig(struct EDIDMetaConfig myEDIDMetaConfig){ // This exists
   Serial.write(myEDIDMetaConfig.NameSuffix[2]);
   Serial.write(myEDIDMetaConfig.NameSuffix[3]);
   Serial.write(myEDIDMetaConfig.NameSuffix[4]);
-  Serial.write(myEDIDMetaConfig.NameSuffix[5]);
 }
 
 void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t PanelID, uint8_t EDIDMetaConfigID, uint32_t SerialNumber, EDID* myEDIDObject){

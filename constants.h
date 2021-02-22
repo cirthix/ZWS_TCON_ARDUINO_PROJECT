@@ -66,7 +66,7 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 #define PANEL_VERSION PANEL_IS_M280GJQDZIS
-#define BUTTONBOARD_VERSION BUTTONBOARD_IS_ZISWORKS
+#define BUTTONBOARD_VERSION BUTTONBOARD_IS_SAMSUNG
 #define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
 // Note that you also have the option to change EDID configurations in edid_construction file
 #define PreferMinimalTimings true
@@ -77,7 +77,7 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 
 // Note: use FIRMWARE_UNIQUE_ID_OVERRIDE with old boards (R1 kits) to keep the serial numbers in EDIDs matched.
 #if BOARD_VERSION == BOARD_IS_EP369_REV2017
-  #define FIRMWARE_UNIQUE_ID_OVERRIDE 87
+  #define FIRMWARE_UNIQUE_ID_OVERRIDE 88
 #endif
 
 
