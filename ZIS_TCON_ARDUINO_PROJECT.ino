@@ -512,8 +512,10 @@ uint8_t CheckVideoActive(){
   if(ACTIVE_VIDEO_MODE_FORCED_ON == true) {return LOW | HIGH; } //? ugly but it works
     uint8_t result = LOW;
     result |= digitalRead(ACTIVE_VIDEO_PRI);
+    //SerialDebug("VideoActivePRI="); SerialDebuglnD(result);
 #ifdef ACTIVE_VIDEO_SEC
     result |= digitalRead(ACTIVE_VIDEO_SEC);
+    //SerialDebug("VideoActiveSEC="); SerialDebuglnD(result);
 #endif
     return result;
 }

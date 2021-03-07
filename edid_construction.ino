@@ -128,6 +128,7 @@ CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this C
 #define EDIDMetaConfig_Profile4             { "480Hz", BaseMetaConfig_Profile4,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile4}
 
 #define EDIDMetaConfig_SHIPPING  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4}
+#define EDIDMetaConfig_SINGLE_FUNCTIONAL_DP  {EDIDMetaConfig_Combo, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4}
 #define EDIDMetaConfig_NEXT_SHIPPING  {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternative, EDIDMetaConfig_Profile2Rect}
 #define EDIDMetaConfig_ONLY_ONE_EDID {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull}
 #define EDIDMetaConfig_RECTANGULAR  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect}
