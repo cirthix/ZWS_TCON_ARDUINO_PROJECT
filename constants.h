@@ -59,6 +59,7 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define BUTTONBOARD_IS_ZISWORKS   100
 #define BUTTONBOARD_IS_SAMSUNG    101
 #define BUTTONBOARD_IS_SAMSUNG_WITH_RGBLED    102
+#define BUTTONBOARD_IS_ZISWORKS_WITH_OLD_REV1_PIN_MAPPING   103
 
 
 #define BOARD_IS_DUAL_EP369_TCON        200
@@ -66,7 +67,7 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
 #define PANEL_VERSION PANEL_IS_M280GJC3ZIS
-#define BUTTONBOARD_VERSION BUTTONBOARD_IS_ZISWORKS
+#define BUTTONBOARD_VERSION BUTTONBOARD_IS_ZISWORKS_WITH_OLD_REV1_PIN_MAPPING
 #define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
 // Note that you also have the option to change EDID configurations in edid_construction file
 #define PreferMinimalTimings true
@@ -130,7 +131,7 @@ const uint8_t CONFIGMASK_EPMI_RS    = 0b10000000;
 
 const uint8_t FACTORY_DEFAULT_BACKLIGHT_BRIGHTNESS = DEFAULT_BRIGHTNESS_LEVEL ; // This default level is set in SUPPORTED_BLDRIVERS.h
 const uint8_t FACTORY_DEFAULT_POWERSTATE = TargetPowerSaveFULLY_ON ;
-const uint8_t FACTORY_DEFAULT_SELECTED_EDID = 0;
+const uint8_t FACTORY_DEFAULT_SELECTED_EDID = 1;
 const uint8_t FACTORY_DEFAULT_USE_CROSSHAIR = false;
 const uint8_t FACTORY_DEFAULT_USE_OSD = false;
 

@@ -127,12 +127,15 @@ CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this C
 #define EDIDMetaConfig_Profile3             { "360Hz", BaseMetaConfig_Profile3,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile3}
 #define EDIDMetaConfig_Profile4             { "480Hz", BaseMetaConfig_Profile4,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile4}
 
-#define EDIDMetaConfig_SHIPPING  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4}
-#define EDIDMetaConfig_SINGLE_FUNCTIONAL_DP  {EDIDMetaConfig_Combo, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4}
-#define EDIDMetaConfig_NEXT_SHIPPING  {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternative, EDIDMetaConfig_Profile2Rect}
-#define EDIDMetaConfig_ONLY_ONE_EDID {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull}
-#define EDIDMetaConfig_RECTANGULAR  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect}
-#define EDIDMetaConfig_DP_TEST {EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2}
+// This is where you can define which EDID configuration is in each slot.  Systems using 'old' button board mapping have five slots, systems with 'new' button board mapping (crosshair button) have four slots.
+// The fifth (last) slot is ignored on systems with the crosshair button enabled.  
+// How this works is that you can put anything you want into any slot.  Then the button board sets the slot to be active, system detects with the contents of that slot.
+#define EDIDMetaConfig_SHIPPING  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4, EDIDMetaConfig_Profile1}
+#define EDIDMetaConfig_SINGLE_FUNCTIONAL_DP  {EDIDMetaConfig_Combo, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile3, EDIDMetaConfig_Profile4, EDIDMetaConfig_Profile1}
+#define EDIDMetaConfig_NEXT_SHIPPING  {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboLegacy, EDIDMetaConfig_Profile1Alternative, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile1}
+#define EDIDMetaConfig_ONLY_ONE_EDID {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull}
+#define EDIDMetaConfig_RECTANGULAR  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect, EDIDMetaConfig_Profile1}
+#define EDIDMetaConfig_DP_TEST {EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2}
 
 struct VideoWallConfig_t {
 uint8_t NumTilesPerDisplay; // Note: assumed horizontal left/right split within each display
@@ -148,7 +151,7 @@ const VideoWallConfig_t VideoWallConfigTriple = {2, 3, 1, 0, 0};
 const VideoWallConfig_t VideoWallConfigQuad   = {2, 2, 2, 0, 0};
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-const PROGMEM EDIDMetaConfig EDIDMetaConfigs[4] = EDIDMetaConfig_SHIPPING;
+const PROGMEM EDIDMetaConfig EDIDMetaConfigs[5] = EDIDMetaConfig_SHIPPING;
 // Note that if you are using video wall functionality, FIRMWARE_UNIQUE_ID_OVERRIDE must be forced to be the same for all tiles in constants file
 #define VideoWallConfig VideoWallConfigSingle
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
@@ -175,8 +178,8 @@ struct ImageDimensions_t ImageSizeCalculator(float PanelDPI, uint8_t PixelScalin
   return myImageDimensions;  
 }
 
-void PrintEDIDMetaConfig(struct EDIDMetaConfig myEDIDMetaConfig){ // This exists to sanity-check progmem access
-  Serial.print(F("NameSuffix=")); 
+void PrintEDIDMetaConfig(struct EDIDMetaConfig myEDIDMetaConfig){ // This exists to sanity-check progmem access, usually disabled
+  SerialDebug("NameSuffix="); 
   Serial.write(myEDIDMetaConfig.NameSuffix[0]);
   Serial.write(myEDIDMetaConfig.NameSuffix[1]);
   Serial.write(myEDIDMetaConfig.NameSuffix[2]);
@@ -193,7 +196,7 @@ void GenerateEDIDWithParameters(uint8_t AmPrimary, uint8_t AmCloned, uint8_t Pan
   myEDIDObject->Reset();
   if(AmPrimary == false && (myEDIDMetaConfig.myTiledMetaConfig.myModeLine[0].HActive == 0)) {
     if(AmCloned == true) {
-      return GenerateEDIDWithParameters(true, AmCloned, PanelID, EDIDMetaConfigID, SerialNumber, myEDIDObject);
+      return GenerateEDIDWithParameters(true, AmCloned, PanelID, EDIDMetaConfigID, SerialNumber+1, myEDIDObject);
     } else {
       return;
     }

@@ -185,7 +185,7 @@ void EDID::SetNoGenericVideoModes(){
 
 void EDID::AddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
   if(myModeLine.HActive==0) {
-   // Serial.print(F("SkippingDTD"));
+   // SerialDebug("SkippingDTD");
     return;
   }
   EDID::AddDetailedDescriptorTiming18BytesToOffset(EDID::GetDetailedDescriptorBlockOffset(), myModeLine, HSizeInMilliMeters, VSizeInMilliMeters);
@@ -333,7 +333,7 @@ void EDID::CEAAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInM
   const uint8_t CEA_DTD_SIZE = 18;
   uint8_t myByteOffset = CEABlockOffset + EDID::GetByte(CEABlockOffset+2) + NumberOfFilledCEADescriptorBlocks * CEA_DTD_SIZE;
   if(myModeLine.HActive==0) { 
-  //  Serial.print(F("SkippingDTD"));
+  //  SerialDebug("SkippingDTD");
     return;
   }
   EDID::AddDetailedDescriptorTiming18BytesToOffset(myByteOffset, myModeLine, HSizeInMilliMeters, VSizeInMilliMeters);
@@ -438,7 +438,10 @@ void EDID::DiDAddTiledDescriptor(uint8_t ManufacturerID[3], uint16_t ProductID, 
 
 void EDID::DiDAddDetailedDescriptorTiming(ModeLine myModeLine, uint16_t HSizeInMilliMeters, uint16_t VSizeInMilliMeters){
   uint8_t myOffset = EDID::DiDGetDescriptorOffset();
-  if(myModeLine.HActive==0) { Serial.print(F("SkippingDTD")); return; }
+  if(myModeLine.HActive==0) { 
+    //SerialDebug("SkippingDTD"); 
+    return; 
+    }
   if(DiDDetailedDescriptorByteCountAddress == 0x00){
     DiDDetailedDescriptorByteCountAddress = myOffset + 0x02;
     EDID::DiDAddToByteCount(0x17);  
@@ -501,12 +504,12 @@ void EDID::DiDSetChecksum(){
 }
   
 void EDID::PrintEDID(){    
-  Serial.println(F(" EDID Buffer:"));
+  SerialDebugln("EDID Buffer:");
   for(uint16_t i=0; i<EDID_BLOCK_SIZE; i++){
-    Serial.print(F(" "));
-    //  SerialDebug(F("0x"));
+    SerialDebug(" ");
+    //  SerialDebug("0x");
     PrintHexByte(EDID::GetByte(i));
-    if(i%16 == 15) {Serial.println(F(""));}
+    if(i%16 == 15) {SerialDebugln("");}
   }
   uint8_t print_the_extension_block=false;
   for(uint16_t i=128; i<EDID_SIZE; i++){
@@ -514,12 +517,12 @@ void EDID::PrintEDID(){
   }
   if(print_the_extension_block==true) {
     for(uint16_t i=128; i<EDID_SIZE; i++){
-      Serial.print(F(" "));
+      SerialDebug(" ");
       PrintHexByte(EDID::GetByte(i));
-      if(i%16 == 15) {Serial.println(F(""));}
+      if(i%16 == 15) {SerialDebugln("");}
     }
   }
-  Serial.println(F(""));
+  SerialDebugln("");
 }
 
 

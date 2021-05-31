@@ -142,9 +142,9 @@ void setup(){
   
   Serial.begin(SERIAL_BAUD);
   
-  Serial.println(F("\n" __DATE__ " " __TIME__ ""));  
-  Serial.print(F("PCB: ")); board_print_name(); 
-  Serial.print(F("CFG: ")); panel_print_name(); 
+  SerialDebugln("\n" __DATE__ " " __TIME__ "");  
+  SerialDebugln("PCB: "); board_print_name(); 
+  SerialDebugln("CFG: "); panel_print_name(); 
 
   if ((!DetermineIfFactoryProgrammed())) {   do_factory_configuration();  }  // This is very early because we don't want anything to interfere with factory programming.  It should run standalone.
   SerialDebugln("\nSTART");
@@ -823,12 +823,12 @@ void handle_button_state() {
 }
 
 void EnterTestMode(){
-      Serial.println(F("ENTERING TEST MODE"));
+      SerialDebugln("ENTERING TEST MODE");
       ACTIVE_VIDEO_MODE_FORCED_ON = true;
       set_on_power_state();
       while (SystemState != SystemState_On) { HandleSystemState(); }
       zdelay(1000);
-      SerialToPanel.println(F(" TESTPATTERNS")); 
+      SerialToPanel.println(" TESTPATTERNS"); 
       zdelay(1000);
       SerialToBldriver.write(ASCII_CODE_FOR_SIMPLE_DEBUG_COMMAND);
 }
@@ -963,10 +963,10 @@ void write_config_eeproms(){
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_SPECIAL, ZWSMOD_EP369S_VALUE_SPECIAL);
     myEDID.SetByte(ZWSMOD_EP369S_ADDRESS_CONFIGURATION, ConfigGenerateEPMI());  
     failureCount = update_eeprom(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte);     
-    if(failureCount > 0) { Serial.println(F("\nEEPROM update failed!"));}
+    if(failureCount > 0) { SerialDebugln("\nEEPROM update failed!");}
     if((failureCount == 0) && (doVerification==true)){
       failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetByte);     
-      if(failureCount > 0) { Serial.println(F("\nEEPROM verify failed!"));}
+      if(failureCount > 0) { SerialDebugln("\nEEPROM verify failed!");}
     }
   #else
 
@@ -996,9 +996,9 @@ void write_config_eeproms(){
     failureCount = update_both_eeproms_byte_mode_write_only_differences(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetBytePRI, &my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByteSEC);
     if((failureCount == 0) && (doVerification==true)){
       failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_PRI, EDID_IIC_ADDRESS, GetBytePRI);     
-      if(failureCount > 0) { Serial.println(F("\nPRI EEPROM verify failed!"));}  
+      if(failureCount > 0) { SerialDebugln("\nPRI EEPROM verify failed!");}  
       failureCount = verify_eeprom_byte_mode(&my_SoftIIC_EDID_SEC, EDID_IIC_ADDRESS, GetByteSEC);     
-      if(failureCount > 0) { Serial.println(F("\nSEC EEPROM verify failed!"));}
+      if(failureCount > 0) { SerialDebugln("\nSEC EEPROM verify failed!");}
     }
   #endif
     while ((millis() - dp_rx_shutdown_millis) < millis_disconnect_for_dp_edid_change) {wdt_reset();}

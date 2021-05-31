@@ -2,7 +2,7 @@
 #define SUPPORTEDBOARDS_H
 
 #if BOARD_VERSION==BOARD_IS_DUAL_EP369_TCON
-inline void board_print_name(){ Serial.println(F("ZisWorks DualDP TCON v1.3"));}
+inline void board_print_name(){ SerialDebugln("ZisWorks DualDP TCON v1.3");}
 #define BUTTON_POWER  A0
 #define BUTTON_A_ANALOG  A1
 #define BUTTON_B_ANALOG  A2
@@ -27,7 +27,7 @@ inline void board_print_name(){ Serial.println(F("ZisWorks DualDP TCON v1.3"));}
 #define RESET_OTHER_CHIPS_SEC  15
 
 #elif BOARD_VERSION==BOARD_IS_EP369_REV2017
-inline void board_print_name(){ Serial.println(F("ZisWorks dp2lvds v2017"));}
+inline void board_print_name(){ SerialDebugln("ZisWorks dp2lvds v2017");}
 //Note: unused pins may be connected to active circuits on the board.  Do not drive them!
 #define BUTTON_POWER  A0
 #define BUTTON_A_ANALOG  A1
