@@ -32,6 +32,7 @@
 // The modes below this line are for zisworks internal testing only, don't use them on x28/x39
 #define ModeLine_ROGPhoneII  { 342.72, 1080, 40, 40, 40, 2340, 2, 6, 32 }
 #define ModeLine_TripleHeadArray  { 180.00, 3840, 16, 32, 32, 800, 3, 5, 27 }
+#define ModeLine_Experimental {142.53, 2400, 48, 32, 80, 900, 4, 10, 14 } 
 #ifndef PreferMinimalTimings
   #error "Must set timing preference"
 #endif
@@ -67,6 +68,7 @@ ModeLine myModeLine[EDID_BASE_MODELINE_SLOTS]; // Note: using the fourth slot (i
 #define BaseMetaConfig_Profile2_n   { {2,1,1}, {2,1,1}, {ModeLine_1080p240Hz, ModeLine_Null, ModeLine_Null}}
 #define BaseMetaConfig_Profile3     { {3,3,1}, {3,3,1}, {ModeLine_720p360_Minimal, ModeLine_720p240_Safe, ModeLine_Null}}
 #define BaseMetaConfig_Profile4     { {4,4,1}, {4,4,1}, {ModeLine_540p480_Minimal, ModeLine_540p240_Safe, ModeLine_Null}}
+#define BaseMetaConfig_Experimental { {1,1,1}, {1,1,1}, {ModeLine_Experimental, ModeLine_Null, ModeLine_Null}}
 
 #define EDID_CEA_MODELINE_SLOTS 4
 struct CEAMetaConfig {
@@ -127,6 +129,8 @@ CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this C
 #define EDIDMetaConfig_Profile3             { "360Hz", BaseMetaConfig_Profile3,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile3}
 #define EDIDMetaConfig_Profile4             { "480Hz", BaseMetaConfig_Profile4,   TiledMetaConfig_Invalid, CEAMetaConfig_Profile4}
 
+#define EDIDMetaConfig_ProfileExperimental  { "zTEST", BaseMetaConfig_Experimental, TiledMetaConfig_Invalid, CEAMetaConfig_Invalid}
+
 // This is where you can define which EDID configuration is in each slot.  Systems using 'old' button board mapping have five slots, systems with 'new' button board mapping (crosshair button) have four slots.
 // The fifth (last) slot is ignored on systems with the crosshair button enabled.  
 // How this works is that you can put anything you want into any slot.  Then the button board sets the slot to be active, system detects with the contents of that slot.
@@ -136,6 +140,7 @@ CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this C
 #define EDIDMetaConfig_ONLY_ONE_EDID {EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull, EDIDMetaConfig_ComboFull}
 #define EDIDMetaConfig_RECTANGULAR  {EDIDMetaConfig_Profile0IntelFix, EDIDMetaConfig_Profile2Rect, EDIDMetaConfig_Profile3Rect, EDIDMetaConfig_Profile4Rect, EDIDMetaConfig_Profile1}
 #define EDIDMetaConfig_DP_TEST {EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2, EDIDMetaConfig_Profile2}
+#define EDIDMetaConfig_EXPERIMENTAL {EDIDMetaConfig_ProfileExperimental, EDIDMetaConfig_ProfileExperimental, EDIDMetaConfig_ProfileExperimental, EDIDMetaConfig_ProfileExperimental,EDIDMetaConfig_ProfileExperimental}
 
 struct VideoWallConfig_t {
 uint8_t NumTilesPerDisplay; // Note: assumed horizontal left/right split within each display

@@ -55,6 +55,7 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define PANEL_IS_V420DKZIS    5 
 #define PANEL_IS_V500DKZIS    6
 #define PANEL_IS_V580DKZIS    7
+#define PANEL_IS_EXPERIMENTAL 8
 
 #define BUTTONBOARD_IS_ZISWORKS   100
 #define BUTTONBOARD_IS_SAMSUNG    101
@@ -66,8 +67,8 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #define BOARD_IS_EP369_REV2017          201
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-#define PANEL_VERSION PANEL_IS_M280GJC3ZIS
-#define BUTTONBOARD_VERSION BUTTONBOARD_IS_ZISWORKS_WITH_OLD_REV1_PIN_MAPPING
+#define PANEL_VERSION PANEL_IS_M280GJQDZIS
+#define BUTTONBOARD_VERSION BUTTONBOARD_IS_SAMSUNG
 #define BOARD_VERSION BOARD_IS_DUAL_EP369_TCON
 // Note that you also have the option to change EDID configurations in edid_construction file
 #define PreferMinimalTimings true
@@ -78,7 +79,7 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 
 // Note: use FIRMWARE_UNIQUE_ID_OVERRIDE with old boards (R1 kits) to keep the serial numbers in EDIDs matched.
 #if BOARD_VERSION == BOARD_IS_EP369_REV2017
-  #define FIRMWARE_UNIQUE_ID_OVERRIDE 88
+  #define FIRMWARE_UNIQUE_ID_OVERRIDE 85
 #endif
 
 
@@ -86,7 +87,7 @@ const uint8_t SK6812_TOTAL_TIME = SK6812_RESET_TIME+SK6812_POST_IDLE_TIME+SK6812
 #include "SUPPORTED_PANELS.h"
 #include "SUPPORTED_BLDRIVERS.h"
 #include "SUPPORTED_BUTTONBOARDS.h"
-const uint16_t ADDRESS_OFFSET                   = 128;
+const uint16_t ADDRESS_OFFSET                   = 256;
 const uint16_t ADDRESS_MAGIC_BYTE               = 0+ADDRESS_OFFSET;
 const uint16_t ADDRESS_POWER_STATE              = 1+ADDRESS_OFFSET;
 const uint16_t ADDRESS_SELECTED_EDID            = 2+ADDRESS_OFFSET;
@@ -131,7 +132,7 @@ const uint8_t CONFIGMASK_EPMI_RS    = 0b10000000;
 
 const uint8_t FACTORY_DEFAULT_BACKLIGHT_BRIGHTNESS = DEFAULT_BRIGHTNESS_LEVEL ; // This default level is set in SUPPORTED_BLDRIVERS.h
 const uint8_t FACTORY_DEFAULT_POWERSTATE = TargetPowerSaveFULLY_ON ;
-const uint8_t FACTORY_DEFAULT_SELECTED_EDID = 1;
+const uint8_t FACTORY_DEFAULT_SELECTED_EDID = 0;
 const uint8_t FACTORY_DEFAULT_USE_CROSSHAIR = false;
 const uint8_t FACTORY_DEFAULT_USE_OSD = false;
 

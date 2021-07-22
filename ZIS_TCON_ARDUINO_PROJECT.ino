@@ -900,11 +900,16 @@ void set_selected_edid(uint8_t desired_edid) {
 
 uint8_t ConfigGenerateEPMI(){
   uint8_t retval = 0x00;
+  if(LVDS_CHANNEL_COUNT == 4) {
    retval |= CONFIGMASK_EPMI_TMODE; // Set four LVDS channel output.
+  }
   // retval |= CONFIGMASK_EPMI_DMODE; // Split output into left/right tiles.
  //  retval |= CONFIGMASK_EPMI_RS; // Set high swing level output.
    retval |= CONFIGMASK_EPMI_LR; // Set left-right swap on LVDS channels.
-  // retval |= CONFIGMASK_EPMI_MAP; // Set JEIDA color mapping mode on LVDS channels.
+
+   if(LVDS_MAPPING == LVDS_MAPPING_JEIDA) {
+     retval |= CONFIGMASK_EPMI_MAP; // Set JEIDA color mapping mode on LVDS channels.
+   }
 
 // DW1,DW0 WIDTH meaning: 00=10BIT, 10=8BIT, 01=6BIT, 11=POWERDOWN
     switch(PANEL_BIT_DEPTH) {

@@ -10,6 +10,7 @@
 #define Chromaticities_M280DGJ_QuantumDot {0.634, 0.341, 0.312, 0.636, 0.158, 0.062, 0.313, 0.329}
 #define Chromaticities_MVA_with_innolux_leds {0.645, 0.335, 0.306, 0.617, 0.149, 0.058, 0.280, 0.290}
 #define Chromaticities_MVA_with_bdm4065_leds {0.645, 0.335, 0.306, 0.617, 0.149, 0.058, 0.280, 0.290} // No real data
+#define Chromaticities_Experimental {.6675, .3075, .1745, .7555, .1395, .0635, 0.308, 0.32}
 
 struct PanelInfo {
 char Name[9];
@@ -25,8 +26,9 @@ Chromaticities Chromaticity;
 #define PanelInfo_5 { "  V420DK", 104.90, Chromaticities_MVA_with_innolux_leds}
 #define PanelInfo_6 { "  V500DK",  88.12, Chromaticities_MVA_with_innolux_leds}
 #define PanelInfo_7 { "  V580DK",  75.96, Chromaticities_MVA_with_innolux_leds}
+#define PanelInfo_8 { "ZIS_TEST", 208.53, Chromaticities_Experimental}
 
-const PanelInfo PanelInfoArray[8] = {PanelInfo_0, PanelInfo_1, PanelInfo_2, PanelInfo_3, PanelInfo_4, PanelInfo_5, PanelInfo_6, PanelInfo_7};
+const PanelInfo PanelInfoArray[9] = {PanelInfo_0, PanelInfo_1, PanelInfo_2, PanelInfo_3, PanelInfo_4, PanelInfo_5, PanelInfo_6, PanelInfo_7, PanelInfo_8};
 
 inline void panel_print_name(){ SerialDebuglnD(PanelInfoArray[PANEL_VERSION].Name);}
 const uint16_t VIDEO_SIGNAL_TO_BACKLIGHT_ON_DELAY = 600; // MILLISECONDS
@@ -39,14 +41,27 @@ const uint8_t DELAY_BETWEEN_BACKLIGHT_POWEROFF_AND_PANEL_POWEROFF = 100;
 #define LVDS_SWING_LEVEL_LOW 0
 #define LVDS_SWING_LEVEL_HIGH 1
  
-#define PANEL_BIT_DEPTH     10   
-#define LVDS_SWING_LEVEL LVDS_SWING_LEVEL_LOW  
+#define PANEL_BIT_DEPTH     10
+#define LVDS_CHANNEL_COUNT 4
+#define LVDS_SWING_LEVEL LVDS_SWING_LEVEL_HIGH  
 #define PIXEL_ORDERING PIXEL_ORDERING_SEQUENTIAL
 #define LVDS_MAPPING LVDS_MAPPING_VESA
+
+//Experimental panel
+//#define PANEL_BIT_DEPTH     8
+//#define LVDS_CHANNEL_COUNT 2
+//#define LVDS_SWING_LEVEL LVDS_SWING_LEVEL_HIGH  
+//#define PIXEL_ORDERING PIXEL_ORDERING_SEQUENTIAL
+//#define LVDS_MAPPING LVDS_MAPPING_JEIDA
 
 #ifndef PANEL_BIT_DEPTH
   #define PANEL_BIT_DEPTH 8 
   #warning "Bit depth not selected, defaulting to 8 bit mode"
+#endif
+
+#ifndef LVDS_CHANNEL_COUNT
+  #define LVDS_CHANNEL_COUNT 4 
+  #warning "LVDS channel count not selected, defaulting to quad channel mode"
 #endif
 
 #ifndef LVDS_SWING_LEVEL
