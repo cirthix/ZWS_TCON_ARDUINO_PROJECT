@@ -142,7 +142,7 @@ const uint16_t HundredMilliseconds   =100;
 const uint16_t OneSecond             =1000;
 const uint16_t TenSeconds            =10000;
 
-const uint8_t EDIDMetaConfigCount = 4;
+const uint8_t EDIDMetaConfigCount = 5;
 
 const uint8_t ZWS_BACKLIGHT_MODE_INVALID = 0;
 const uint8_t ZWS_BACKLIGHT_MODE_PWM = 1;

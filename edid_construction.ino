@@ -62,8 +62,9 @@ ModeLine myModeLine[EDID_BASE_MODELINE_SLOTS]; // Note: using the fourth slot (i
 #define BaseMetaConfig_Stripe_n     { {1,1,1}, {1,1,1}, {ModeLine_4K120_Stripe, ModeLine_Null, ModeLine_Null}}
 #define BaseMetaConfig_Profile0     { {1,1,1}, {1,1,1}, {ModeLine_4K60_Safe, ModeLine_4K30_Safe, ModeLine_Null}}
 #define BaseMetaConfig_Profile0_n   { {1,1,1}, {1,1,1}, {ModeLine_4K60_Safe, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Profile1     { {1,1,1}, {1,1,1}, {ModeLine_1440p165_StripeSafe, ModeLine_Null, ModeLine_Null}}
-#define BaseMetaConfig_Profile1_x   { {1,1,1}, {1,1,1}, {ModeLine_1440p180_StripeExtreme, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_Profile1     { {1,1,1}, {1,1,1}, {ModeLine_4K60_Safe, ModeLine_4K30_Safe, ModeLine_Null}}
+#define BaseMetaConfig_Profile1a    { {1,1,1}, {1,1,1}, {ModeLine_1440p165_StripeSafe, ModeLine_Null, ModeLine_Null}}
+#define BaseMetaConfig_Profile1a_x  { {1,1,1}, {1,1,1}, {ModeLine_1440p180_StripeExtreme, ModeLine_Null, ModeLine_Null}}
 #define BaseMetaConfig_Profile2     { {2,2,1}, {2,2,1}, {ModeLine_1080p240Hz, ModeLine_1080p120_Safe, ModeLine_Null}}
 #define BaseMetaConfig_Profile2_n   { {2,1,1}, {2,1,1}, {ModeLine_1080p240Hz, ModeLine_Null, ModeLine_Null}}
 #define BaseMetaConfig_Profile3     { {3,3,1}, {3,3,1}, {ModeLine_720p360_Minimal, ModeLine_720p240_Safe, ModeLine_Null}}
@@ -98,8 +99,8 @@ ModeLine myModeLine[EDID_DID_MODELINE_SLOTS]; // Note: using the fourth slot (if
 
 #define TiledMetaConfig_Invalid       { 1, 1, ModeLine_Null, }
 #define TiledMetaConfig_Profile0      { 1, 1, ModeLine_4K120_Stripe }
-#define TiledMetaConfig_Profile1      { 1, 1, ModeLine_1440p165_StripeSafe }
-#define TiledMetaConfig_Profile1_x    { 1, 1, ModeLine_1440p180_StripeExtreme }
+#define TiledMetaConfig_Profile1a     { 1, 1, ModeLine_1440p165_StripeSafe }
+#define TiledMetaConfig_Profile1a_x   { 1, 1, ModeLine_1440p180_StripeExtreme }
 #define TiledMetaConfig_Profile2Rect  { 1, 2, ModeLine_1080p240Hz}
 #define TiledMetaConfig_Profile3Rect  { 1, 3, ModeLine_720p360_RectMinimal}
 #define TiledMetaConfig_Profile4Rect  { 1, 4, ModeLine_540p480_RectMinimal}
@@ -118,8 +119,8 @@ CEAMetaConfig myCEAMetaConfig; // If no DiD block is present, will attach this C
 #define EDIDMetaConfig_ComboFull            { "1MODE", BaseMetaConfig_FullThree,  TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile0             { "4K120", BaseMetaConfig_Profile0,   TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile0IntelFix     { "4K120", BaseMetaConfig_Stripe,     TiledMetaConfig_Profile0, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile1Alternative  { "165Hz", BaseMetaConfig_Profile1,   TiledMetaConfig_Profile1, CEAMetaConfig_Invalid}
-#define EDIDMetaConfig_Profile1Alternativex { "180Hz", BaseMetaConfig_Profile1_x,  TiledMetaConfig_Profile1_x, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1Alternative  { "165Hz", BaseMetaConfig_Profile1a,   TiledMetaConfig_Profile1a, CEAMetaConfig_Invalid}
+#define EDIDMetaConfig_Profile1Alternativex { "180Hz", BaseMetaConfig_Profile1a_x,  TiledMetaConfig_Profile1a_x, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile2Rect         { "RP240", BaseMetaConfig_Profile2,   TiledMetaConfig_Profile2Rect, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile3Rect         { "RP360", BaseMetaConfig_Profile3,   TiledMetaConfig_Profile3Rect, CEAMetaConfig_Invalid}
 #define EDIDMetaConfig_Profile4Rect         { "RP480", BaseMetaConfig_Profile4,   TiledMetaConfig_Profile4Rect, CEAMetaConfig_Invalid}
@@ -156,7 +157,7 @@ const VideoWallConfig_t VideoWallConfigTriple = {2, 3, 1, 0, 0};
 const VideoWallConfig_t VideoWallConfigQuad   = {2, 2, 2, 0, 0};
 
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
-const PROGMEM EDIDMetaConfig EDIDMetaConfigs[5] = EDIDMetaConfig_SHIPPING;
+const PROGMEM EDIDMetaConfig EDIDMetaConfigs[EDIDMetaConfigCount] = EDIDMetaConfig_SHIPPING;
 // Note that if you are using video wall functionality, FIRMWARE_UNIQUE_ID_OVERRIDE must be forced to be the same for all tiles in constants file
 #define VideoWallConfig VideoWallConfigSingle
 //////////////////////////////////////////////////////////////////////// CHANGE SYSTEM CONFIGURATION PARAMETERS HERE ////////////////////////////////////////////////////////////////////////
